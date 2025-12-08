@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Choti - AI Companion Platform</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .auth-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 400px;
+            padding: 40px;
+        }
+
+        .auth-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .auth-header h1 {
+            font-size: 32px;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .auth-header p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: border-color 0.2s;
+        }
+
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .form-row .form-group {
+            margin-bottom: 0;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+            margin-top: 10px;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .auth-toggle {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .auth-toggle a {
+            color: #667eea;
+            text-decoration: none;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .auth-toggle a:hover {
+            text-decoration: underline;
+        }
+
+        .error {
+            color: #e74c3c;
+            font-size: 13px;
+            margin-top: 5px;
+        }
+
+        .success {
+            color: #27ae60;
+            font-size: 13px;
+            margin-top: 5px;
+        }
+
+        .form-section {
+            display: none;
+        }
+
+        .form-section.active {
+            display: block;
+        }
+
+        .profile-fields {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .profile-fields .form-group {
+            margin-bottom: 0;
+        }
+
+        .profile-fields .form-group:nth-child(n+3) {
+            grid-column: span 2;
+        }
+
+        @media (max-width: 600px) {
+            .auth-container {
+                padding: 30px 20px;
+            }
+
+            .form-row, .profile-fields {
+                grid-template-columns: 1fr;
+            }
+
+            .profile-fields .form-group:nth-child(n+3) {
+                grid-column: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        <!-- Login Form -->
+        <div class="form-section active" id="loginForm">
+            <div class="auth-header">
+                <h1>🌙</h1>
+                <h1>Welcome Back</h1>
+                <p>Sign in to your AI companion</p>
+            </div>
+
+            <form id="loginFormElement">
+                <div class="form-group">
+                    <label for="loginEmail">Email</label>
+                    <input type="email" id="loginEmail" name="email" required placeholder="your@email.com">
+                    <div class="error" id="loginEmailError"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="loginPassword">Password</label>
+                    <input type="password" id="loginPassword" name="password" required placeholder="••••••••">
+                    <div class="error" id="loginPasswordError"></div>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Sign In</button>
+                <div class="error" id="loginError"></div>
+            </form>
+
+            <div class="auth-toggle">
+                Don't have an account? <a onclick="switchForm('signup')">Sign Up</a>
+            </div>
+        </div>
+
+        <!-- Signup Form -->
+        <div class="form-section" id="signupForm">
+            <div class="auth-header">
+                <h1>✨</h1>
+                <h1>Create Account</h1>
+                <p>Start your AI companion journey</p>
+            </div>
+
+            <form id="signupFormElement">
+                <div class="form-group">
+                    <label for="signupEmail">Email</label>
+                    <input type="email" id="signupEmail" name="email" required placeholder="your@email.com">
+                    <div class="error" id="signupEmailError"></div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="signupPassword">Password</label>
+                        <input type="password" id="signupPassword" name="password" required placeholder="••••••••">
+                        <div class="error" id="signupPasswordError"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="signupConfirm">Confirm Password</label>
+                        <input type="password" id="signupConfirm" name="confirm" required placeholder="••••••••">
+                        <div class="error" id="signupConfirmError"></div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="signupName">Full Name</label>
+                    <input type="text" id="signupName" name="name" required placeholder="Your Name">
+                    <div class="error" id="signupNameError"></div>
+                </div>
+
+                <div class="profile-fields">
+                    <div class="form-group">
+                        <label for="signupNickname">Nickname</label>
+                        <input type="text" id="signupNickname" name="nickname" placeholder="e.g., Choti, Spark">
+                    </div>
+                    <div class="form-group">
+                        <label for="signupHobby">Hobby</label>
+                        <input type="text" id="signupHobby" name="hobby" placeholder="e.g., Reading, Coding">
+                    </div>
+                    <div class="form-group">
+                        <label for="signupPassion">Passion</label>
+                        <input type="text" id="signupPassion" name="passion" placeholder="e.g., Learning, Creating">
+                    </div>
+                    <div class="form-group">
+                        <label for="signupEducation">Educational Background</label>
+                        <input type="text" id="signupEducation" name="educationalBackground" placeholder="e.g., CSE at BMSCE">
+                    </div>
+                    <div class="form-group" style="grid-column: span 2;">
+                        <label for="signupBio">Bio / Tell us about yourself</label>
+                        <textarea id="signupBio" name="bio" placeholder="Tell us something interesting about you..."></textarea>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Create Account</button>
+                <div class="error" id="signupError"></div>
+            </form>
+
+            <div class="auth-toggle">
+                Already have an account? <a onclick="switchForm('login')">Sign In</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function switchForm(form) {
+            document.getElementById('loginForm').classList.remove('active');
+            document.getElementById('signupForm').classList.remove('active');
+            document.getElementById(form + 'Form').classList.add('active');
+        }
+
+        // Clear errors
+        function clearErrors() {
+            document.querySelectorAll('.error').forEach(el => el.textContent = '');
+        }
+
+        // Login form submit
+        document.getElementById('loginFormElement').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            clearErrors();
+
+            const email = document.getElementById('loginEmail').value.trim();
+            const password = document.getElementById('loginPassword').value;
+
+            if (!email) {
+                document.getElementById('loginEmailError').textContent = 'Email is required';
+                return;
+            }
+
+            if (!password) {
+                document.getElementById('loginPasswordError').textContent = 'Password is required';
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    document.getElementById('loginError').textContent = data.error || 'Login failed';
+                    return;
+                }
+
+                // Save token
+                localStorage.setItem('authToken', data.token);
+                localStorage.setItem('user', JSON.stringify(data.user));
+
+                // Redirect to chat
+                window.location.href = '/index.html';
+            } catch (error) {
+                document.getElementById('loginError').textContent = 'An error occurred. Please try again.';
+            }
+        });
+
+        // Signup form submit
+        document.getElementById('signupFormElement').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            clearErrors();
+
+            const email = document.getElementById('signupEmail').value.trim();
+            const password = document.getElementById('signupPassword').value;
+            const confirm = document.getElementById('signupConfirm').value;
+            const name = document.getElementById('signupName').value.trim();
+            const nickname = document.getElementById('signupNickname').value.trim();
+            const hobby = document.getElementById('signupHobby').value.trim();
+            const passion = document.getElementById('signupPassion').value.trim();
+            const educationalBackground = document.getElementById('signupEducation').value.trim();
+            const bio = document.getElementById('signupBio').value.trim();
+
+            // Validation
+            if (!email) {
+                document.getElementById('signupEmailError').textContent = 'Email is required';
+                return;
+            }
+
+            if (!password) {
+                document.getElementById('signupPasswordError').textContent = 'Password is required';
+                return;
+            }
+
+            if (password.length < 6) {
+                document.getElementById('signupPasswordError').textContent = 'Password must be at least 6 characters';
+                return;
+            }
+
+            if (password !== confirm) {
+                document.getElementById('signupConfirmError').textContent = 'Passwords do not match';
+                return;
+            }
+
+            if (!name) {
+                document.getElementById('signupNameError').textContent = 'Full name is required';
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/auth/signup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email,
+                        password,
+                        name,
+                        nickname,
+                        hobby,
+                        passion,
+                        educationalBackground,
+                        bio
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    document.getElementById('signupError').textContent = data.error || 'Signup failed';
+                    return;
+                }
+
+                // Save token
+                localStorage.setItem('authToken', data.token);
+                localStorage.setItem('user', JSON.stringify(data.user));
+
+                // Redirect to chat
+                window.location.href = '/index.html';
+            } catch (error) {
+                document.getElementById('signupError').textContent = 'An error occurred. Please try again.';
+            }
+        });
+    </script>
+</body>
+</html>

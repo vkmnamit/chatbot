@@ -571,6 +571,7 @@
 
       <div class="sidebar-footer">
         <p>AI Companion for Choti 💫</p>
+        <button id="logoutBtn" style="width: 100%; padding: 10px; margin-top: 10px; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600;">Logout</button>
       </div>
     </div>
 
@@ -609,6 +610,16 @@
   </div>
 
   <script>
+    // ============ AUTH CHECK ============
+    // Check if user is logged in
+    const authToken = localStorage.getItem('authToken');
+    const user = JSON.parse(localStorage.getItem('user') || 'null');
+
+    if (!authToken || !user) {
+      // Redirect to login if not authenticated
+      window.location.href = '/auth.html';
+    }
+
     const chatContainer = document.getElementById('chatContainer');
     const messageInput = document.getElementById('messageInput');
     const sendBtn = document.getElementById('sendBtn');
@@ -620,6 +631,13 @@
     const menuBtn = document.getElementById('menuBtn');
     const closeSidebarBtn = document.getElementById('closeSidebarBtn');
     const newChatHeaderBtn = document.getElementById('newChatHeaderBtn');
+
+    // ============ USER INFO ============
+    // Update sidebar header with user's nickname
+    const userNameEl = document.querySelector('.sidebar-header span');
+    if (userNameEl && user) {
+      userNameEl.textContent = user.nickname || user.name || 'User';
+    }
 
     // Mobile sidebar toggle
     function openSidebar() {
@@ -651,12 +669,8 @@
       messageInput.focus();
     });
 
-    // Generate unique user ID
-    let userId = localStorage.getItem('chotiUserId');
-    if (!userId) {
-      userId = 'user_' + Date.now();
-      localStorage.setItem('chotiUserId', userId);
-    }
+    // Use authenticated user's ID
+    let userId = user.id;
 
     let isWaitingForResponse = false;
     let currentChatId = 'chat_' + Date.now();
@@ -761,10 +775,11 @@
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authToken}`
           },
           body: JSON.stringify({
             message: message,
-            userId: userId,
+            userId: user.id,
             conversationId: currentConversationId,
           }),
         });
@@ -918,6 +933,15 @@
         });
       });
     }
+
+    // Logout handler
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+      if (confirm('Are you sure you want to logout?')) {
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('user');
+        window.location.href = '/auth.html';
+      }
+    });
 
     // Initial attachment of tip listeners
     attachTipListeners();
