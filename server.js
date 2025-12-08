@@ -31,7 +31,7 @@ async function connectDB() {
     try {
         console.log('🔄 Connecting to MongoDB...');
         console.log('📍 MongoDB URI:', MONGODB_URI ? MONGODB_URI.substring(0, 25) + '...' : 'NOT SET');
-        
+
         mongoose.set('strictQuery', false);
         await mongoose.connect(MONGODB_URI, {
             bufferCommands: false,
@@ -519,8 +519,8 @@ app.post('/api/auth/signup', async (req, res) => {
         console.error('Error name:', error.name);
         console.error('Error message:', error.message);
         console.error('Error stack:', error.stack);
-        res.status(500).json({ 
-            error: 'Signup failed', 
+        res.status(500).json({
+            error: 'Signup failed',
             message: error.message,
             errorName: error.name,
             details: process.env.NODE_ENV === 'development' ? error.stack : undefined
@@ -531,6 +531,12 @@ app.post('/api/auth/signup', async (req, res) => {
 // POST /api/auth/login - Login user
 app.post('/api/auth/login', async (req, res) => {
     try {
+        console.log('🔐 Login request received:', req.body.email);
+
+        // Ensure DB connection in serverless environment
+        await connectDB();
+        console.log('🔗 DB connected for login');
+
         const { email, password } = req.body;
 
         if (!email || !password) {
@@ -575,6 +581,7 @@ app.post('/api/auth/login', async (req, res) => {
 // GET /api/auth/me - Get current user info (protected)
 app.get('/api/auth/me', authMiddleware, async (req, res) => {
     try {
+        await connectDB();
         const user = await User.findById(req.userId).select('-password');
         if (!user) {
             return res.status(404).json({ error: 'User not found' });
@@ -588,6 +595,7 @@ app.get('/api/auth/me', authMiddleware, async (req, res) => {
 // PUT /api/auth/profile - Update user profile (protected)
 app.put('/api/auth/profile', authMiddleware, async (req, res) => {
     try {
+        await connectDB();
         const { name, nickname, hobby, passion, educationalBackground, bio } = req.body;
 
         const user = await User.findByIdAndUpdate(
@@ -616,13 +624,22 @@ app.put('/api/auth/profile', authMiddleware, async (req, res) => {
 // ============ MAIN CHAT ENDPOINT ============
 app.post('/api/chat', async (req, res) => {
     try {
+        console.log('💬 Chat request received');
+        console.log('🔧 Request body:', { userId: req.body.userId, message: req.body.message?.substring(0, 50) });
+
+        // Ensure DB connection in serverless environment
+        await connectDB();
+        console.log('🔗 DB connected for chat endpoint');
+
         const { message, userId, conversationId } = req.body;
 
         if (!message || !userId) {
+            console.error('❌ Missing message or userId');
             return res.status(400).json({ error: 'Message and userId are required' });
         }
 
         // Get or create conversation in database
+        console.log('📝 Getting/creating conversation...');
         let conversation;
         if (conversationId) {
             conversation = await Conversation.findById(conversationId);
@@ -726,13 +743,17 @@ app.post('/api/chat', async (req, res) => {
             usedAPI: usedAPI,
         });
     } catch (error) {
-        console.error('Error:', error);
+        console.error('❌ Chat endpoint error:', error);
+        console.error('Error name:', error.name);
+        console.error('Error message:', error.message);
+        console.error('Error stack:', error.stack);
 
         let errorMessage = 'An error occurred while processing your message';
 
         res.status(500).json({
             success: false,
             error: errorMessage,
+            details: process.env.NODE_ENV === 'development' ? error.message : undefined
         });
     }
 });
