@@ -204,6 +204,19 @@
             display: block;
         }
 
+        .skip-link {
+            text-align: center;
+            margin-top: 16px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .skip-link a {
+            color: #000;
+            text-decoration: underline;
+            cursor: pointer;
+        }
+
         @media (max-width: 600px) {
             .auth-container {
                 padding: 40px 24px;
@@ -225,7 +238,7 @@
         <!-- Login Form -->
         <div class="form-section active" id="loginForm">
             <div class="auth-header">
-                <div class="auth-logo">💬</div>
+
                 <h1>Welcome back</h1>
             </div>
 
@@ -263,7 +276,7 @@
             <form id="signupFormElement">
                 <div class="form-group">
                     <label for="signupEmail">Email address</label>
-                    <input type="email" id="signupEmail" name="email" required placeholder="you@example.com"
+                    <input type="email" id="signupEmail" name="email" required placeholder="Enter your email..."
                         autocomplete="email">
                     <div class="error" id="signupEmailError"></div>
                 </div>
@@ -281,39 +294,10 @@
                     <div class="error" id="signupNameError"></div>
                 </div>
 
-                <div class="optional-fields">
-                    <span class="optional-label">Optional - Help us personalize your experience</span>
-
-                    <div class="form-group">
-                        <label for="signupNickname">Nickname</label>
-                        <input type="text" id="signupNickname" name="nickname" placeholder="What should we call you?">
-                    </div>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="signupHobby">Hobby</label>
-                            <input type="text" id="signupHobby" name="hobby" placeholder="e.g., Reading">
-                        </div>
-                        <div class="form-group">
-                            <label for="signupPassion">Passion</label>
-                            <input type="text" id="signupPassion" name="passion" placeholder="e.g., Learning">
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="signupEducation">Educational background</label>
-                        <input type="text" id="signupEducation" name="educationalBackground"
-                            placeholder="e.g., CSE Student at XYZ">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="signupBio">About you</label>
-                        <textarea id="signupBio" name="bio"
-                            placeholder="Tell us something interesting about yourself..."></textarea>
-                    </div>
-                </div>
-
                 <button type="submit" class="btn btn-primary" id="signupBtn">Continue</button>
+                <div class="skip-link">
+                    We'll personalize your experience in the next step ✨
+                </div>
                 <div class="error" id="signupError"></div>
             </form>
 
@@ -396,11 +380,6 @@
             const email = document.getElementById('signupEmail').value.trim();
             const password = document.getElementById('signupPassword').value;
             const name = document.getElementById('signupName').value.trim();
-            const nickname = document.getElementById('signupNickname').value.trim();
-            const hobby = document.getElementById('signupHobby').value.trim();
-            const passion = document.getElementById('signupPassion').value.trim();
-            const educationalBackground = document.getElementById('signupEducation').value.trim();
-            const bio = document.getElementById('signupBio').value.trim();
 
             // Validation
             if (!email) {
@@ -433,11 +412,11 @@
                         email,
                         password,
                         name,
-                        nickname,
-                        hobby,
-                        passion,
-                        educationalBackground,
-                        bio
+                        nickname: name, // Use name as default nickname
+                        hobby: '',
+                        passion: '',
+                        educationalBackground: '',
+                        bio: ''
                     })
                 });
 
@@ -453,8 +432,8 @@
                 localStorage.setItem('authToken', data.token);
                 localStorage.setItem('user', JSON.stringify(data.user));
 
-                // Redirect to chat
-                window.location.href = '/index.html';
+                // Redirect to onboarding
+                window.location.href = '/onboarding.html';
             } catch (error) {
                 document.getElementById('signupError').textContent = 'An error occurred. Please try again.';
                 setLoading('signupBtn', false);
