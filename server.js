@@ -36,8 +36,9 @@ async function connectDB() {
         await mongoose.connect(MONGODB_URI, {
             bufferCommands: false,
             maxPoolSize: 10,
-            serverSelectionTimeoutMS: 5000,
+            serverSelectionTimeoutMS: 10000, // Increased to 10 seconds
             socketTimeoutMS: 45000,
+            family: 4 // Force IPv4
         });
         isConnected = true;
         console.log('✅ Connected to MongoDB successfully');
@@ -110,7 +111,7 @@ async function buildDynamicSystemPrompt(userId) {
     try {
         // Ensure DB connection in serverless environment
         await connectDB();
-        
+
         // Get the authenticated user
         const authUser = await User.findById(userId);
 
@@ -187,7 +188,7 @@ async function analyzeAndUpdateProfile(userId, userMessage, assistantResponse) {
     try {
         // Ensure DB connection in serverless environment
         await connectDB();
-        
+
         let profile = await ChotiProfile.findOne({ oderId: userId });
         if (!profile) {
             profile = new ChotiProfile({ oderId: userId });
@@ -466,8 +467,16 @@ app.post('/api/auth/signup', async (req, res) => {
         });
 
         // Ensure DB connection in serverless environment
-        await connectDB();
-        console.log('🔗 DB connection state after connectDB:', mongoose.connection.readyState);
+        try {
+            await connectDB();
+            console.log('🔗 DB connection state after connectDB:', mongoose.connection.readyState);
+        } catch (dbError) {
+            console.error('❌ Database connection failed:', dbError.message);
+            return res.status(503).json({ 
+                error: 'Database connection failed', 
+                message: 'Unable to connect to database. Please try again.' 
+            });
+        }
 
         const { email, password, name, nickname, hobby, passion, educationalBackground, bio } = req.body;
 
