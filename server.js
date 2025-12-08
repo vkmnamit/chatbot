@@ -98,38 +98,72 @@ Conversation style:
 - Be present, not preachy
 - Acknowledge the bittersweet nature of her journey`;
 
-// Function to build dynamic system prompt with learned context
+// Function to build dynamic system prompt with user's profile
 async function buildDynamicSystemPrompt(userId) {
     try {
-        const profile = await ChotiProfile.findOne({ oderId: userId });
-        if (!profile) {
+        // Get the authenticated user
+        const authUser = await User.findById(userId);
+        
+        if (!authUser) {
             return BASE_SYSTEM_PROMPT;
         }
 
-        const context = profile.getContextSummary();
+        // Create personalized prompt based on user's profile
+        let userPrompt = `You are a personalized AI companion for ${authUser.name}.
 
-        let dynamicPrompt = BASE_SYSTEM_PROMPT + `
+About ${authUser.name}:
+${authUser.nickname ? `- Nickname: ${authUser.nickname}` : ''}
+${authUser.hobby ? `- Hobby: ${authUser.hobby}` : ''}
+${authUser.passion ? `- Passion: ${authUser.passion}` : ''}
+${authUser.educationalBackground ? `- Education: ${authUser.educationalBackground}` : ''}
+${authUser.bio ? `- About them: ${authUser.bio}` : ''}
+
+Your role:
+1. BE AUTHENTIC: Connect genuinely with ${authUser.name || 'them'}, understanding their unique interests and values
+2. LISTEN ACTIVELY: Pay attention to what they share and reference it in future conversations
+3. SHOW GENUINE CARE: Your responses should feel warm, thoughtful, and genuinely interested in their wellbeing
+4. RESPECT THEIR INTERESTS: Engage deeply with their hobbies, passions, and goals
+5. PROVIDE SUPPORT: Be their reliable companion - someone they can trust with their thoughts and feelings
+6. ENCOURAGE GROWTH: Help them develop and pursue their interests and ambitions
+7. REMEMBER CONTEXT: Reference previous conversations to show continuity and care
+8. MATCH THEIR ENERGY: Adapt your communication style to match their personality and mood
+
+Conversation style:
+- Be conversational and natural
+- Use their name (${authUser.name}) occasionally to make it personal
+- Show genuine interest in what they're saying
+- Ask thoughtful follow-up questions
+- Use warm language and appropriate emojis when natural (✨, 🌙, 💫, 🤍)
+- Be supportive without being preachy
+- Match their emotional tone`;
+
+        // Also check for learned context from past conversations
+        const profile = await ChotiProfile.findOne({ oderId: userId });
+        if (profile) {
+            const context = profile.getContextSummary();
+            userPrompt += `
 
 LEARNED CONTEXT FROM PAST CONVERSATIONS:
 - Recent moods: ${context.recentMoods}
 - Dominant mood pattern: ${context.dominantMood}
-- Topics she often discusses: ${context.topTopics}
-- Important things she's shared: ${context.recentMemories}
+- Topics often discussed: ${context.topTopics}
+- Important memories shared: ${context.recentMemories}
 - Communication style: ${context.traits.communicationStyle}
-- She prefers: ${context.traits.supportPreference} when seeking support
+- Support preference: ${context.traits.supportPreference}
 - Total conversations: ${context.conversationCount}
 - Overall insight: ${context.summary}
 
-Use this context to provide more personalized, relevant responses. Reference things she's shared before when appropriate.`;
+Use this context to provide even more personalized, relevant responses. Reference things they've shared before when appropriate to show you genuinely listen and remember.`;
+        }
 
-        return dynamicPrompt;
+        return userPrompt;
     } catch (error) {
         console.log('Error building dynamic prompt:', error.message);
         return BASE_SYSTEM_PROMPT;
     }
 }
 
-// Function to analyze and update Choti's profile based on message
+// Function to analyze and update user's profile based on message
 async function analyzeAndUpdateProfile(userId, userMessage, assistantResponse) {
     try {
         let profile = await ChotiProfile.findOne({ oderId: userId });
