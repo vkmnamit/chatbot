@@ -80,7 +80,7 @@ async function buildDynamicSystemPrompt(userId) {
         }
 
         const context = profile.getContextSummary();
-        
+
         let dynamicPrompt = BASE_SYSTEM_PROMPT + `
 
 LEARNED CONTEXT FROM PAST CONVERSATIONS:
@@ -111,11 +111,11 @@ async function analyzeAndUpdateProfile(userId, userMessage, assistantResponse) {
         }
 
         const msg = userMessage.toLowerCase();
-        
+
         // Detect mood from message
         let detectedMood = 'neutral';
         let intensity = 5;
-        
+
         if (msg.includes('happy') || msg.includes('excited') || msg.includes('great') || msg.includes('amazing')) {
             detectedMood = 'happy';
             intensity = 7;
@@ -187,8 +187,8 @@ async function analyzeAndUpdateProfile(userId, userMessage, assistantResponse) {
                     profile.topicInterests.push({
                         topic: topic,
                         frequency: 1,
-                        sentiment: detectedMood === 'happy' ? 'positive' : 
-                                   detectedMood === 'sad' || detectedMood === 'angry' ? 'negative' : 'neutral'
+                        sentiment: detectedMood === 'happy' ? 'positive' :
+                            detectedMood === 'sad' || detectedMood === 'angry' ? 'negative' : 'neutral'
                     });
                 }
             }
@@ -235,7 +235,7 @@ async function analyzeAndUpdateProfile(userId, userMessage, assistantResponse) {
                 .slice(0, 3)
                 .map(t => t.topic)
                 .join(', ');
-            
+
             profile.insights.summary = `Choti often feels ${topMoods}. She frequently talks about ${topTopics}. She has shared ${profile.keyMemories.length} important memories.`;
         }
 
@@ -400,7 +400,7 @@ app.post('/api/chat', async (req, res) => {
         try {
             // Build dynamic system prompt with learned context
             const dynamicSystemPrompt = await buildDynamicSystemPrompt(userId);
-            
+
             // Build messages array with system prompt and history
             const messages = [
                 { role: 'system', content: dynamicSystemPrompt },
@@ -534,14 +534,14 @@ app.get('/api/profile/:oderId', async (req, res) => {
     try {
         const { oderId } = req.params;
         let profile = await ChotiProfile.findOne({ oderId: oderId });
-        
+
         if (!profile) {
             profile = new ChotiProfile({ oderId: oderId });
             await profile.save();
         }
-        
+
         const summary = profile.getContextSummary();
-        res.json({ 
+        res.json({
             profile: {
                 dominantMood: profile.dominantMood,
                 moodHistory: profile.moodHistory.slice(-10),
@@ -573,7 +573,7 @@ app.get('/api/history/:oderId', async (req, res) => {
 // Health check
 app.get('/api/health', async (req, res) => {
     const dbStatus = mongoose.connection.readyState === 1 ? 'connected' : 'disconnected';
-    res.json({ 
+    res.json({
         status: 'Choti Companion is running 💫',
         database: dbStatus
     });

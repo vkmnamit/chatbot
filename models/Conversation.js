@@ -35,12 +35,6 @@ const conversationSchema = new mongoose.Schema({
         type: Date,
         default: Date.now
     }
-});
-
-// Update the updatedAt field on save
-conversationSchema.pre('save', function(next) {
-    this.updatedAt = new Date();
-    next();
-});
+}, { timestamps: true });
 
 module.exports = mongoose.model('Conversation', conversationSchema);

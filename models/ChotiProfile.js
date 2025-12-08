@@ -52,10 +52,10 @@ const chotiProfileSchema = new mongoose.Schema({
         type: String,
         default: 'neutral'
     },
-    
+
     // Topics she talks about frequently
     topicInterests: [topicInterestSchema],
-    
+
     // Behavioral insights
     traits: {
         communicationStyle: {
@@ -75,7 +75,7 @@ const chotiProfileSchema = new mongoose.Schema({
             default: 'listening'
         }
     },
-    
+
     // Key memories and important things she's shared
     keyMemories: [{
         memory: String,
@@ -94,7 +94,7 @@ const chotiProfileSchema = new mongoose.Schema({
             default: Date.now
         }
     }],
-    
+
     // Summary insights (updated periodically)
     insights: {
         summary: String,
@@ -108,7 +108,7 @@ const chotiProfileSchema = new mongoose.Schema({
             default: 0
         }
     },
-    
+
     createdAt: {
         type: Date,
         default: Date.now
@@ -117,16 +117,10 @@ const chotiProfileSchema = new mongoose.Schema({
         type: Date,
         default: Date.now
     }
-});
-
-// Update timestamp on save
-chotiProfileSchema.pre('save', function(next) {
-    this.updatedAt = new Date();
-    next();
-});
+}, { timestamps: true });
 
 // Method to get profile summary for AI context
-chotiProfileSchema.methods.getContextSummary = function() {
+chotiProfileSchema.methods.getContextSummary = function () {
     const recentMoods = this.moodHistory.slice(-5).map(m => m.mood).join(', ');
     const topTopics = this.topicInterests
         .sort((a, b) => b.frequency - a.frequency)
@@ -137,7 +131,7 @@ chotiProfileSchema.methods.getContextSummary = function() {
         .slice(-3)
         .map(m => m.memory)
         .join('; ');
-    
+
     return {
         recentMoods: recentMoods || 'No mood data yet',
         topTopics: topTopics || 'No topics tracked yet',

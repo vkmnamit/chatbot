@@ -593,7 +593,7 @@
 
       // Check if this conversation already exists in sidebar
       let existingItem = document.querySelector(`.history-item[data-id="${convId}"]`);
-      
+
       if (!existingItem) {
         const item = document.createElement('div');
         item.className = 'history-item';
@@ -611,7 +611,7 @@
       try {
         const response = await fetch(`/api/conversations/${userId}`);
         const data = await response.json();
-        
+
         if (data.conversations && data.conversations.length > 0) {
           chatHistory.innerHTML = '';
           data.conversations.forEach(conv => {
@@ -635,17 +635,17 @@
       try {
         const response = await fetch(`/api/conversation/${convId}`);
         const data = await response.json();
-        
+
         if (data.conversation) {
           currentConversationId = convId;
           headerTitle.textContent = data.conversation.title || 'Chat';
           chatContainer.innerHTML = '';
-          
+
           // Display all messages
           data.conversation.messages.forEach(msg => {
             displayMessage(msg.content, msg.role === 'user');
           });
-          
+
           // Highlight active conversation in sidebar
           document.querySelectorAll('.history-item').forEach(item => {
             item.classList.remove('active');
@@ -683,7 +683,7 @@
       displayWelcome();
       messageInput.value = '';
       messageInput.focus();
-      
+
       // Remove active class from all history items
       document.querySelectorAll('.history-item').forEach(item => {
         item.classList.remove('active');
