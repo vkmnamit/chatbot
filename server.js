@@ -436,6 +436,7 @@ function getConversationHistory(userId) {
 // POST /api/auth/signup - Register new user
 app.post('/api/auth/signup', async (req, res) => {
     try {
+        console.log('📝 Signup request received:', req.body.email);
         const { email, password, name, nickname, hobby, passion, educationalBackground, bio } = req.body;
 
         if (!email || !password || !name) {
@@ -461,6 +462,7 @@ app.post('/api/auth/signup', async (req, res) => {
         });
 
         await user.save();
+        console.log('✅ User saved:', user.email);
 
         // Create JWT token
         const token = createToken(user._id.toString());

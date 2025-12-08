@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Choti - AI Companion Platform</title>
+    <title>AI Companion - Sign up or Log in</title>
     <style>
         * {
             margin: 0;
@@ -12,65 +12,84 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #fff;
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
+            color: #000;
         }
 
         .auth-container {
             background: white;
-            border-radius: 12px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
             width: 100%;
-            max-width: 400px;
-            padding: 40px;
+            max-width: 450px;
+            padding: 60px 40px;
         }
 
         .auth-header {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 32px;
+        }
+
+        .auth-logo {
+            width: 32px;
+            height: 32px;
+            margin: 0 auto 16px;
+            background: #000;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
         }
 
         .auth-header h1 {
             font-size: 32px;
-            color: #333;
-            margin-bottom: 10px;
+            font-weight: 600;
+            color: #000;
+            margin-bottom: 8px;
+            line-height: 1.2;
         }
 
         .auth-header p {
             color: #666;
-            font-size: 14px;
+            font-size: 16px;
         }
 
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 16px;
         }
 
         label {
             display: block;
             margin-bottom: 8px;
-            color: #333;
+            color: #000;
             font-weight: 500;
             font-size: 14px;
         }
 
         input, textarea {
             width: 100%;
-            padding: 12px;
+            padding: 14px 16px;
             border: 1px solid #ddd;
-            border-radius: 8px;
-            font-size: 14px;
+            border-radius: 6px;
+            font-size: 16px;
             font-family: inherit;
-            transition: border-color 0.2s;
+            transition: all 0.2s;
+            background: #fff;
+            color: #000;
         }
 
         input:focus, textarea:focus {
             outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            border-color: #000;
+        }
+
+        input:hover, textarea:hover {
+            border-color: #999;
         }
 
         textarea {
@@ -81,53 +100,44 @@
         .form-row {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 15px;
-        }
-
-        .form-row .form-group {
-            margin-bottom: 0;
+            gap: 12px;
         }
 
         .btn {
             width: 100%;
-            padding: 12px;
+            padding: 14px 16px;
             border: none;
-            border-radius: 8px;
+            border-radius: 6px;
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.2s;
+            margin-top: 8px;
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #000;
             color: white;
         }
 
         .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+            background: #333;
         }
 
-        .btn-secondary {
-            background: #f0f0f0;
-            color: #333;
-            margin-top: 10px;
-        }
-
-        .btn-secondary:hover {
-            background: #e0e0e0;
+        .btn-primary:disabled {
+            background: #ccc;
+            cursor: not-allowed;
         }
 
         .auth-toggle {
             text-align: center;
-            margin-top: 20px;
+            margin-top: 24px;
             font-size: 14px;
             color: #666;
         }
 
         .auth-toggle a {
-            color: #667eea;
+            color: #000;
             text-decoration: none;
             cursor: pointer;
             font-weight: 600;
@@ -138,15 +148,15 @@
         }
 
         .error {
-            color: #e74c3c;
+            color: #ef4444;
             font-size: 13px;
-            margin-top: 5px;
+            margin-top: 6px;
         }
 
         .success {
-            color: #27ae60;
+            color: #10b981;
             font-size: 13px;
-            margin-top: 5px;
+            margin-top: 6px;
         }
 
         .form-section {
@@ -157,32 +167,50 @@
             display: block;
         }
 
-        .profile-fields {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-top: 15px;
+        .divider {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            margin: 24px 0;
+            color: #999;
+            font-size: 13px;
         }
 
-        .profile-fields .form-group {
-            margin-bottom: 0;
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid #ddd;
         }
 
-        .profile-fields .form-group:nth-child(n+3) {
-            grid-column: span 2;
+        .divider span {
+            padding: 0 12px;
+        }
+
+        .optional-fields {
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 1px solid #eee;
+        }
+
+        .optional-label {
+            font-size: 13px;
+            color: #999;
+            margin-bottom: 16px;
+            display: block;
         }
 
         @media (max-width: 600px) {
             .auth-container {
-                padding: 30px 20px;
+                padding: 40px 24px;
             }
 
-            .form-row, .profile-fields {
+            .auth-header h1 {
+                font-size: 28px;
+            }
+
+            .form-row {
                 grid-template-columns: 1fr;
-            }
-
-            .profile-fields .form-group:nth-child(n+3) {
-                grid-column: auto;
             }
         }
     </style>
@@ -192,96 +220,94 @@
         <!-- Login Form -->
         <div class="form-section active" id="loginForm">
             <div class="auth-header">
-                <h1>🌙</h1>
-                <h1>Welcome Back</h1>
-                <p>Sign in to your AI companion</p>
+                <div class="auth-logo">💬</div>
+                <h1>Welcome back</h1>
             </div>
 
             <form id="loginFormElement">
                 <div class="form-group">
-                    <label for="loginEmail">Email</label>
-                    <input type="email" id="loginEmail" name="email" required placeholder="your@email.com">
+                    <label for="loginEmail">Email address</label>
+                    <input type="email" id="loginEmail" name="email" required placeholder="you@example.com" autocomplete="email">
                     <div class="error" id="loginEmailError"></div>
                 </div>
 
                 <div class="form-group">
                     <label for="loginPassword">Password</label>
-                    <input type="password" id="loginPassword" name="password" required placeholder="••••••••">
+                    <input type="password" id="loginPassword" name="password" required placeholder="Enter your password" autocomplete="current-password">
                     <div class="error" id="loginPasswordError"></div>
                 </div>
 
-                <button type="submit" class="btn btn-primary">Sign In</button>
+                <button type="submit" class="btn btn-primary" id="loginBtn">Continue</button>
                 <div class="error" id="loginError"></div>
             </form>
 
             <div class="auth-toggle">
-                Don't have an account? <a onclick="switchForm('signup')">Sign Up</a>
+                Don't have an account? <a onclick="switchForm('signup')">Sign up</a>
             </div>
         </div>
 
         <!-- Signup Form -->
         <div class="form-section" id="signupForm">
             <div class="auth-header">
-                <h1>✨</h1>
-                <h1>Create Account</h1>
-                <p>Start your AI companion journey</p>
+                <div class="auth-logo">✨</div>
+                <h1>Create your account</h1>
             </div>
 
             <form id="signupFormElement">
                 <div class="form-group">
-                    <label for="signupEmail">Email</label>
-                    <input type="email" id="signupEmail" name="email" required placeholder="your@email.com">
+                    <label for="signupEmail">Email address</label>
+                    <input type="email" id="signupEmail" name="email" required placeholder="you@example.com" autocomplete="email">
                     <div class="error" id="signupEmailError"></div>
                 </div>
 
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="signupPassword">Password</label>
-                        <input type="password" id="signupPassword" name="password" required placeholder="••••••••">
-                        <div class="error" id="signupPasswordError"></div>
-                    </div>
-                    <div class="form-group">
-                        <label for="signupConfirm">Confirm Password</label>
-                        <input type="password" id="signupConfirm" name="confirm" required placeholder="••••••••">
-                        <div class="error" id="signupConfirmError"></div>
-                    </div>
+                <div class="form-group">
+                    <label for="signupPassword">Password</label>
+                    <input type="password" id="signupPassword" name="password" required placeholder="At least 6 characters" autocomplete="new-password">
+                    <div class="error" id="signupPasswordError"></div>
                 </div>
 
                 <div class="form-group">
-                    <label for="signupName">Full Name</label>
-                    <input type="text" id="signupName" name="name" required placeholder="Your Name">
+                    <label for="signupName">Full name</label>
+                    <input type="text" id="signupName" name="name" required placeholder="Your name" autocomplete="name">
                     <div class="error" id="signupNameError"></div>
                 </div>
 
-                <div class="profile-fields">
+                <div class="optional-fields">
+                    <span class="optional-label">Optional - Help us personalize your experience</span>
+                    
                     <div class="form-group">
                         <label for="signupNickname">Nickname</label>
-                        <input type="text" id="signupNickname" name="nickname" placeholder="e.g., Choti, Spark">
+                        <input type="text" id="signupNickname" name="nickname" placeholder="What should we call you?">
                     </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="signupHobby">Hobby</label>
+                            <input type="text" id="signupHobby" name="hobby" placeholder="e.g., Reading">
+                        </div>
+                        <div class="form-group">
+                            <label for="signupPassion">Passion</label>
+                            <input type="text" id="signupPassion" name="passion" placeholder="e.g., Learning">
+                        </div>
+                    </div>
+
                     <div class="form-group">
-                        <label for="signupHobby">Hobby</label>
-                        <input type="text" id="signupHobby" name="hobby" placeholder="e.g., Reading, Coding">
+                        <label for="signupEducation">Educational background</label>
+                        <input type="text" id="signupEducation" name="educationalBackground" placeholder="e.g., CSE Student at XYZ">
                     </div>
+
                     <div class="form-group">
-                        <label for="signupPassion">Passion</label>
-                        <input type="text" id="signupPassion" name="passion" placeholder="e.g., Learning, Creating">
-                    </div>
-                    <div class="form-group">
-                        <label for="signupEducation">Educational Background</label>
-                        <input type="text" id="signupEducation" name="educationalBackground" placeholder="e.g., CSE at BMSCE">
-                    </div>
-                    <div class="form-group" style="grid-column: span 2;">
-                        <label for="signupBio">Bio / Tell us about yourself</label>
-                        <textarea id="signupBio" name="bio" placeholder="Tell us something interesting about you..."></textarea>
+                        <label for="signupBio">About you</label>
+                        <textarea id="signupBio" name="bio" placeholder="Tell us something interesting about yourself..."></textarea>
                     </div>
                 </div>
 
-                <button type="submit" class="btn btn-primary">Create Account</button>
+                <button type="submit" class="btn btn-primary" id="signupBtn">Continue</button>
                 <div class="error" id="signupError"></div>
             </form>
 
             <div class="auth-toggle">
-                Already have an account? <a onclick="switchForm('login')">Sign In</a>
+                Already have an account? <a onclick="switchForm('login')">Log in</a>
             </div>
         </div>
     </div>
@@ -291,11 +317,17 @@
             document.getElementById('loginForm').classList.remove('active');
             document.getElementById('signupForm').classList.remove('active');
             document.getElementById(form + 'Form').classList.add('active');
+            clearErrors();
         }
 
-        // Clear errors
         function clearErrors() {
             document.querySelectorAll('.error').forEach(el => el.textContent = '');
+        }
+
+        function setLoading(btnId, isLoading) {
+            const btn = document.getElementById(btnId);
+            btn.disabled = isLoading;
+            btn.textContent = isLoading ? 'Please wait...' : (btnId === 'loginBtn' ? 'Continue' : 'Continue');
         }
 
         // Login form submit
@@ -316,6 +348,8 @@
                 return;
             }
 
+            setLoading('loginBtn', true);
+
             try {
                 const response = await fetch('/api/auth/login', {
                     method: 'POST',
@@ -327,6 +361,7 @@
 
                 if (!response.ok) {
                     document.getElementById('loginError').textContent = data.error || 'Login failed';
+                    setLoading('loginBtn', false);
                     return;
                 }
 
@@ -338,6 +373,7 @@
                 window.location.href = '/index.html';
             } catch (error) {
                 document.getElementById('loginError').textContent = 'An error occurred. Please try again.';
+                setLoading('loginBtn', false);
             }
         });
 
@@ -348,7 +384,6 @@
 
             const email = document.getElementById('signupEmail').value.trim();
             const password = document.getElementById('signupPassword').value;
-            const confirm = document.getElementById('signupConfirm').value;
             const name = document.getElementById('signupName').value.trim();
             const nickname = document.getElementById('signupNickname').value.trim();
             const hobby = document.getElementById('signupHobby').value.trim();
@@ -372,15 +407,12 @@
                 return;
             }
 
-            if (password !== confirm) {
-                document.getElementById('signupConfirmError').textContent = 'Passwords do not match';
-                return;
-            }
-
             if (!name) {
                 document.getElementById('signupNameError').textContent = 'Full name is required';
                 return;
             }
+
+            setLoading('signupBtn', true);
 
             try {
                 const response = await fetch('/api/auth/signup', {
@@ -402,6 +434,7 @@
 
                 if (!response.ok) {
                     document.getElementById('signupError').textContent = data.error || 'Signup failed';
+                    setLoading('signupBtn', false);
                     return;
                 }
 
@@ -413,6 +446,7 @@
                 window.location.href = '/index.html';
             } catch (error) {
                 document.getElementById('signupError').textContent = 'An error occurred. Please try again.';
+                setLoading('signupBtn', false);
             }
         });
     </script>
