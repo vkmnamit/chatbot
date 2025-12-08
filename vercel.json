@@ -4,9 +4,25 @@
         {
             "src": "server.js",
             "use": "@vercel/node"
+        },
+        {
+            "src": "public/**",
+            "use": "@vercel/static"
         }
     ],
     "routes": [
+        {
+            "src": "/auth.html",
+            "dest": "/public/auth.html"
+        },
+        {
+            "src": "/index.html",
+            "dest": "/public/index.html"
+        },
+        {
+            "src": "/onboarding.html",
+            "dest": "/public/onboarding.html"
+        },
         {
             "src": "/api/(.*)",
             "dest": "server.js"
