@@ -77,23 +77,26 @@
       cursor: pointer;
       font-size: 14px;
       margin-bottom: 8px;
-      background: rgba(245, 245, 220, 0.05);
+      background: #fff;
       transition: all 0.2s;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      color: rgba(245, 245, 220, 0.8);
+      color: #0a0a0a;
+      border: 1px solid rgba(255, 255, 255, 0.1);
     }
 
     .history-item:hover {
-      background: rgba(245, 245, 220, 0.15);
-      color: #f5f5dc;
+      background: #f5f5f5;
+      color: #0a0a0a;
+      border-color: rgba(255, 255, 255, 0.2);
     }
 
     .history-item.active {
-      background: rgba(245, 245, 220, 0.2);
-      border-left: 3px solid #f5f5dc;
-      color: #f5f5dc;
+      background: #fff;
+      border-left: 3px solid #0a0a0a;
+      color: #0a0a0a;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     }
 
     .sidebar-footer {
@@ -237,8 +240,9 @@
     }
 
     .message-group.user .message-bubble {
-      background: #0a0a0a;
-      color: #f5f5dc;
+      background: #fff;
+      color: #0a0a0a;
+      border: 1px solid rgba(0, 0, 0, 0.1);
     }
 
     .message-group.assistant .message-bubble {
