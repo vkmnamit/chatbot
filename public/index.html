@@ -86,6 +86,11 @@
       background: rgba(255, 255, 255, 0.2);
     }
 
+    .history-item.active {
+      background: rgba(255, 255, 255, 0.3);
+      border-left: 3px solid white;
+    }
+
     .sidebar-footer {
       padding-top: 20px;
       border-top: 1px solid rgba(255, 255, 255, 0.1);
@@ -444,6 +449,7 @@
 
     let isWaitingForResponse = false;
     let currentChatId = 'chat_' + Date.now();
+    let currentConversationId = null; // Database conversation ID
 
     // Auto-resize textarea
     messageInput.addEventListener('input', () => {
@@ -548,6 +554,7 @@
           body: JSON.stringify({
             message: message,
             userId: userId,
+            conversationId: currentConversationId,
           }),
         });
 
@@ -556,7 +563,11 @@
 
         if (data.success) {
           displayMessage(data.message, false);
-          addToHistory(message);
+          // Update conversation ID if new conversation was created
+          if (data.conversationId) {
+            currentConversationId = data.conversationId;
+          }
+          addToHistory(message, currentConversationId);
         } else {
           let errorMsg = data.error || 'Unable to process your message';
           if (data.retryAfter) {
@@ -577,18 +588,74 @@
       }
     }
 
-    function addToHistory(message) {
+    function addToHistory(message, convId) {
       const preview = message.substring(0, 30) + (message.length > 30 ? '...' : '');
 
-      if (!document.querySelector(`.history-item[data-id="${currentChatId}"]`)) {
+      // Check if this conversation already exists in sidebar
+      let existingItem = document.querySelector(`.history-item[data-id="${convId}"]`);
+      
+      if (!existingItem) {
         const item = document.createElement('div');
         item.className = 'history-item';
         item.textContent = preview;
-        item.dataset.id = currentChatId;
+        item.dataset.id = convId;
         item.addEventListener('click', () => {
-          loadChat(currentChatId);
+          loadConversation(convId);
         });
         chatHistory.insertBefore(item, chatHistory.firstChild);
+      }
+    }
+
+    // Load conversations from database
+    async function loadConversationList() {
+      try {
+        const response = await fetch(`/api/conversations/${userId}`);
+        const data = await response.json();
+        
+        if (data.conversations && data.conversations.length > 0) {
+          chatHistory.innerHTML = '';
+          data.conversations.forEach(conv => {
+            const item = document.createElement('div');
+            item.className = 'history-item';
+            item.textContent = conv.title || 'Chat';
+            item.dataset.id = conv._id;
+            item.addEventListener('click', () => {
+              loadConversation(conv._id);
+            });
+            chatHistory.appendChild(item);
+          });
+        }
+      } catch (error) {
+        console.log('Could not load conversations:', error);
+      }
+    }
+
+    // Load a specific conversation
+    async function loadConversation(convId) {
+      try {
+        const response = await fetch(`/api/conversation/${convId}`);
+        const data = await response.json();
+        
+        if (data.conversation) {
+          currentConversationId = convId;
+          headerTitle.textContent = data.conversation.title || 'Chat';
+          chatContainer.innerHTML = '';
+          
+          // Display all messages
+          data.conversation.messages.forEach(msg => {
+            displayMessage(msg.content, msg.role === 'user');
+          });
+          
+          // Highlight active conversation in sidebar
+          document.querySelectorAll('.history-item').forEach(item => {
+            item.classList.remove('active');
+            if (item.dataset.id === convId) {
+              item.classList.add('active');
+            }
+          });
+        }
+      } catch (error) {
+        console.error('Error loading conversation:', error);
       }
     }
 
@@ -610,11 +677,17 @@
 
     newChatBtn.addEventListener('click', () => {
       currentChatId = 'chat_' + Date.now();
+      currentConversationId = null; // Start fresh conversation
       headerTitle.textContent = 'New Chat';
       chatContainer.innerHTML = '';
       displayWelcome();
       messageInput.value = '';
       messageInput.focus();
+      
+      // Remove active class from all history items
+      document.querySelectorAll('.history-item').forEach(item => {
+        item.classList.remove('active');
+      });
     });
 
     // Handle tip clicks
@@ -633,6 +706,9 @@
 
     // Initial attachment of tip listeners
     attachTipListeners();
+
+    // Load conversation history on page load
+    loadConversationList();
 
     messageInput.focus();
   </script>

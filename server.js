@@ -3,16 +3,28 @@ const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const path = require('path');
+const mongoose = require('mongoose');
+
+// Import models
+const Conversation = require('./models/Conversation');
+const ChotiProfile = require('./models/ChotiProfile');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// MongoDB connection
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/choti-companion';
+
+mongoose.connect(MONGODB_URI)
+    .then(() => console.log('✅ Connected to MongoDB'))
+    .catch(err => console.log('⚠️ MongoDB connection error:', err.message));
 
 // OpenRouter API configuration
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
 const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
 
-// Choti's personality system prompt with emotional context
-const CHOTI_SYSTEM_PROMPT = `You are Choti's personal AI companion. You embody empathy, emotional intelligence, and genuine care.
+// Base system prompt
+const BASE_SYSTEM_PROMPT = `You are Choti's personal AI companion. You embody empathy, emotional intelligence, and genuine care.
 
 About Choti:
 - She is a petite girl, 4'9" in height - small but mighty with a big heart
@@ -58,6 +70,180 @@ Conversation style:
 - Match her emotional energy while gently uplifting
 - Be present, not preachy
 - Acknowledge the bittersweet nature of her journey`;
+
+// Function to build dynamic system prompt with learned context
+async function buildDynamicSystemPrompt(userId) {
+    try {
+        const profile = await ChotiProfile.findOne({ oderId: userId });
+        if (!profile) {
+            return BASE_SYSTEM_PROMPT;
+        }
+
+        const context = profile.getContextSummary();
+        
+        let dynamicPrompt = BASE_SYSTEM_PROMPT + `
+
+LEARNED CONTEXT FROM PAST CONVERSATIONS:
+- Recent moods: ${context.recentMoods}
+- Dominant mood pattern: ${context.dominantMood}
+- Topics she often discusses: ${context.topTopics}
+- Important things she's shared: ${context.recentMemories}
+- Communication style: ${context.traits.communicationStyle}
+- She prefers: ${context.traits.supportPreference} when seeking support
+- Total conversations: ${context.conversationCount}
+- Overall insight: ${context.summary}
+
+Use this context to provide more personalized, relevant responses. Reference things she's shared before when appropriate.`;
+
+        return dynamicPrompt;
+    } catch (error) {
+        console.log('Error building dynamic prompt:', error.message);
+        return BASE_SYSTEM_PROMPT;
+    }
+}
+
+// Function to analyze and update Choti's profile based on message
+async function analyzeAndUpdateProfile(userId, userMessage, assistantResponse) {
+    try {
+        let profile = await ChotiProfile.findOne({ oderId: userId });
+        if (!profile) {
+            profile = new ChotiProfile({ oderId: userId });
+        }
+
+        const msg = userMessage.toLowerCase();
+        
+        // Detect mood from message
+        let detectedMood = 'neutral';
+        let intensity = 5;
+        
+        if (msg.includes('happy') || msg.includes('excited') || msg.includes('great') || msg.includes('amazing')) {
+            detectedMood = 'happy';
+            intensity = 7;
+        } else if (msg.includes('sad') || msg.includes('cry') || msg.includes('tears') || msg.includes('depressed')) {
+            detectedMood = 'sad';
+            intensity = 7;
+        } else if (msg.includes('angry') || msg.includes('mad') || msg.includes('furious') || msg.includes('frustrated')) {
+            detectedMood = 'angry';
+            intensity = 8;
+        } else if (msg.includes('anxious') || msg.includes('worried') || msg.includes('nervous') || msg.includes('scared')) {
+            detectedMood = 'anxious';
+            intensity = 7;
+        } else if (msg.includes('lonely') || msg.includes('alone') || msg.includes('isolated')) {
+            detectedMood = 'lonely';
+            intensity = 6;
+        } else if (msg.includes('stressed') || msg.includes('overwhelmed') || msg.includes('pressure')) {
+            detectedMood = 'stressed';
+            intensity = 7;
+        } else if (msg.includes('peaceful') || msg.includes('calm') || msg.includes('relaxed')) {
+            detectedMood = 'peaceful';
+            intensity = 6;
+        } else if (msg.includes('confused') || msg.includes('lost') || msg.includes('unsure')) {
+            detectedMood = 'confused';
+            intensity = 5;
+        } else if (msg.includes('hope') || msg.includes('better') || msg.includes('optimistic')) {
+            detectedMood = 'hopeful';
+            intensity = 6;
+        }
+
+        // Add mood to history
+        profile.moodHistory.push({
+            mood: detectedMood,
+            intensity: intensity,
+            context: userMessage.substring(0, 100)
+        });
+
+        // Keep only last 50 mood entries
+        if (profile.moodHistory.length > 50) {
+            profile.moodHistory = profile.moodHistory.slice(-50);
+        }
+
+        // Calculate dominant mood
+        const moodCounts = {};
+        profile.moodHistory.forEach(m => {
+            moodCounts[m.mood] = (moodCounts[m.mood] || 0) + 1;
+        });
+        profile.dominantMood = Object.entries(moodCounts)
+            .sort((a, b) => b[1] - a[1])[0]?.[0] || 'neutral';
+
+        // Detect topics
+        const topicKeywords = {
+            'college': ['college', 'bmsce', 'class', 'professor', 'lecture', 'campus'],
+            'studies': ['study', 'exam', 'assignment', 'cgpa', 'grades', 'project'],
+            'relationships': ['friend', 'boyfriend', 'love', 'relationship', 'dating'],
+            'family': ['mom', 'dad', 'parents', 'family', 'home', 'bihar'],
+            'career': ['job', 'career', 'placement', 'internship', 'future'],
+            'health': ['health', 'sleep', 'tired', 'sick', 'exercise'],
+            'hobbies': ['music', 'movie', 'book', 'game', 'hobby'],
+            'kota': ['kota', 'allen', 'jee', 'dropper', 'coaching']
+        };
+
+        for (const [topic, keywords] of Object.entries(topicKeywords)) {
+            if (keywords.some(kw => msg.includes(kw))) {
+                const existingTopic = profile.topicInterests.find(t => t.topic === topic);
+                if (existingTopic) {
+                    existingTopic.frequency += 1;
+                    existingTopic.lastMentioned = new Date();
+                } else {
+                    profile.topicInterests.push({
+                        topic: topic,
+                        frequency: 1,
+                        sentiment: detectedMood === 'happy' ? 'positive' : 
+                                   detectedMood === 'sad' || detectedMood === 'angry' ? 'negative' : 'neutral'
+                    });
+                }
+            }
+        }
+
+        // Detect key memories (important personal shares)
+        const memoryIndicators = [
+            { pattern: /i achieved|i got|i passed|i won/i, category: 'achievement' },
+            { pattern: /struggling with|hard for me|difficult time/i, category: 'struggle' },
+            { pattern: /my dream is|i want to be|i hope to/i, category: 'dream' },
+            { pattern: /i'm afraid|i fear|scares me/i, category: 'fear' },
+            { pattern: /made me happy|best day|so happy/i, category: 'joy' }
+        ];
+
+        for (const indicator of memoryIndicators) {
+            if (indicator.pattern.test(userMessage)) {
+                profile.keyMemories.push({
+                    memory: userMessage.substring(0, 200),
+                    category: indicator.category,
+                    importance: intensity
+                });
+                // Keep only last 20 memories
+                if (profile.keyMemories.length > 20) {
+                    profile.keyMemories = profile.keyMemories.slice(-20);
+                }
+                break;
+            }
+        }
+
+        // Update insights
+        profile.insights.conversationCount += 1;
+        profile.insights.totalMessages += 1;
+        profile.insights.lastUpdated = new Date();
+
+        // Generate summary every 10 conversations
+        if (profile.insights.conversationCount % 10 === 0) {
+            const topMoods = Object.entries(moodCounts)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 3)
+                .map(([mood]) => mood)
+                .join(', ');
+            const topTopics = profile.topicInterests
+                .sort((a, b) => b.frequency - a.frequency)
+                .slice(0, 3)
+                .map(t => t.topic)
+                .join(', ');
+            
+            profile.insights.summary = `Choti often feels ${topMoods}. She frequently talks about ${topTopics}. She has shared ${profile.keyMemories.length} important memories.`;
+        }
+
+        await profile.save();
+    } catch (error) {
+        console.log('Error updating profile:', error.message);
+    }
+}
 
 // Middleware
 app.use(cors());
@@ -176,16 +362,32 @@ function getConversationHistory(userId) {
 // Main chat endpoint
 app.post('/api/chat', async (req, res) => {
     try {
-        const { message, userId } = req.body;
+        const { message, userId, conversationId } = req.body;
 
         if (!message || !userId) {
             return res.status(400).json({ error: 'Message and userId are required' });
         }
 
-        // Get conversation history
-        const history = getConversationHistory(userId);
+        // Get or create conversation in database
+        let conversation;
+        if (conversationId) {
+            conversation = await Conversation.findById(conversationId);
+        }
+        if (!conversation) {
+            conversation = new Conversation({
+                oderId: userId,
+                title: message.substring(0, 50) + (message.length > 50 ? '...' : '')
+            });
+        }
 
-        // Add user message to history
+        // Add user message to conversation
+        conversation.messages.push({
+            role: 'user',
+            content: message
+        });
+
+        // Get in-memory history for API context
+        const history = getConversationHistory(userId);
         history.push({
             role: 'user',
             content: message,
@@ -196,9 +398,12 @@ app.post('/api/chat', async (req, res) => {
 
         // Try to use OpenRouter API
         try {
+            // Build dynamic system prompt with learned context
+            const dynamicSystemPrompt = await buildDynamicSystemPrompt(userId);
+            
             // Build messages array with system prompt and history
             const messages = [
-                { role: 'system', content: CHOTI_SYSTEM_PROMPT },
+                { role: 'system', content: dynamicSystemPrompt },
                 ...history.map(msg => ({
                     role: msg.role === 'model' ? 'assistant' : msg.role,
                     content: msg.content || (msg.parts && msg.parts[0]?.text) || ''
@@ -236,7 +441,19 @@ app.post('/api/chat', async (req, res) => {
             assistantMessage = getDemoResponse(message);
         }
 
-        // Add assistant response to history
+        // Add assistant response to conversation
+        conversation.messages.push({
+            role: 'assistant',
+            content: assistantMessage
+        });
+
+        // Save conversation to database
+        await conversation.save();
+
+        // Update Choti's profile with learned insights
+        await analyzeAndUpdateProfile(userId, message, assistantMessage);
+
+        // Add assistant response to in-memory history
         history.push({
             role: 'model',
             content: assistantMessage,
@@ -250,6 +467,7 @@ app.post('/api/chat', async (req, res) => {
         res.json({
             success: true,
             message: assistantMessage,
+            conversationId: conversation._id,
             timestamp: new Date().toISOString(),
             usedAPI: usedAPI,
         });
@@ -266,30 +484,99 @@ app.post('/api/chat', async (req, res) => {
 });
 
 // Clear conversation history
-app.post('/api/clear-history', (req, res) => {
-    const { userId } = req.body;
-    if (userId) {
-        delete conversationHistories[userId];
+app.post('/api/clear-history', async (req, res) => {
+    const { oderId } = req.body;
+    if (oderId) {
+        delete conversationHistories[oderId];
     }
     res.json({ success: true, message: 'Conversation history cleared' });
 });
 
-// Get conversation history
-app.get('/api/history/:userId', (req, res) => {
-    const { userId } = req.params;
-    const history = getConversationHistory(userId);
+// Get all conversations for a user
+app.get('/api/conversations/:oderId', async (req, res) => {
+    try {
+        const { oderId } = req.params;
+        const conversations = await Conversation.find({ oderId: oderId })
+            .sort({ updatedAt: -1 })
+            .limit(50)
+            .select('_id title createdAt updatedAt');
+        res.json({ conversations });
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to fetch conversations' });
+    }
+});
+
+// Get a specific conversation
+app.get('/api/conversation/:id', async (req, res) => {
+    try {
+        const conversation = await Conversation.findById(req.params.id);
+        if (!conversation) {
+            return res.status(404).json({ error: 'Conversation not found' });
+        }
+        res.json({ conversation });
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to fetch conversation' });
+    }
+});
+
+// Delete a conversation
+app.delete('/api/conversation/:id', async (req, res) => {
+    try {
+        await Conversation.findByIdAndDelete(req.params.id);
+        res.json({ success: true, message: 'Conversation deleted' });
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to delete conversation' });
+    }
+});
+
+// Get Choti's profile/insights
+app.get('/api/profile/:oderId', async (req, res) => {
+    try {
+        const { oderId } = req.params;
+        let profile = await ChotiProfile.findOne({ oderId: oderId });
+        
+        if (!profile) {
+            profile = new ChotiProfile({ oderId: oderId });
+            await profile.save();
+        }
+        
+        const summary = profile.getContextSummary();
+        res.json({ 
+            profile: {
+                dominantMood: profile.dominantMood,
+                moodHistory: profile.moodHistory.slice(-10),
+                topTopics: profile.topicInterests.sort((a, b) => b.frequency - a.frequency).slice(0, 5),
+                keyMemories: profile.keyMemories.slice(-5),
+                traits: profile.traits,
+                insights: profile.insights,
+                summary: summary
+            }
+        });
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to fetch profile' });
+    }
+});
+
+// Legacy endpoint for compatibility
+app.get('/api/history/:oderId', async (req, res) => {
+    const { oderId } = req.params;
+    const history = getConversationHistory(oderId);
     const messages = history
         .filter((msg) => msg.role === 'user' || msg.role === 'model')
         .map((msg) => ({
             role: msg.role === 'user' ? 'user' : 'assistant',
-            text: msg.parts[0].text,
+            text: msg.content || '',
         }));
     res.json({ messages });
 });
 
 // Health check
-app.get('/api/health', (req, res) => {
-    res.json({ status: 'Choti Companion is running 💫' });
+app.get('/api/health', async (req, res) => {
+    const dbStatus = mongoose.connection.readyState === 1 ? 'connected' : 'disconnected';
+    res.json({ 
+        status: 'Choti Companion is running 💫',
+        database: dbStatus
+    });
 });
 
 // Serve index.html for root path
