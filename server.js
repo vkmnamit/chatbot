@@ -23,11 +23,15 @@ const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/choti-
 let isConnected = false;
 
 async function connectDB() {
-    if (isConnected) {
+    if (isConnected && mongoose.connection.readyState === 1) {
+        console.log('✅ Using existing MongoDB connection');
         return;
     }
 
     try {
+        console.log('🔄 Connecting to MongoDB...');
+        console.log('📍 MongoDB URI:', MONGODB_URI ? MONGODB_URI.substring(0, 25) + '...' : 'NOT SET');
+        
         mongoose.set('strictQuery', false);
         await mongoose.connect(MONGODB_URI, {
             bufferCommands: false,
@@ -36,10 +40,13 @@ async function connectDB() {
             socketTimeoutMS: 45000,
         });
         isConnected = true;
-        console.log('✅ Connected to MongoDB');
+        console.log('✅ Connected to MongoDB successfully');
+        console.log('📊 Connection state:', mongoose.connection.readyState);
     } catch (err) {
-        console.log('⚠️ MongoDB connection error:', err.message);
+        console.error('❌ MongoDB connection error:', err.message);
+        console.error('Error details:', err);
         isConnected = false;
+        throw new Error(`Database connection failed: ${err.message}`);
     }
 }
 
@@ -446,18 +453,32 @@ function getConversationHistory(userId) {
 app.post('/api/auth/signup', async (req, res) => {
     try {
         console.log('📝 Signup request received:', req.body.email);
+        console.log('🔧 Environment check:', {
+            mongoUri: process.env.MONGODB_URI ? 'SET' : 'NOT SET',
+            jwtSecret: process.env.JWT_SECRET ? 'SET' : 'NOT SET (using fallback)',
+            mongooseState: mongoose.connection.readyState // 0=disconnected, 1=connected, 2=connecting, 3=disconnecting
+        });
+
+        // Ensure DB connection in serverless environment
+        await connectDB();
+        console.log('🔗 DB connection state after connectDB:', mongoose.connection.readyState);
+
         const { email, password, name, nickname, hobby, passion, educationalBackground, bio } = req.body;
 
         if (!email || !password || !name) {
+            console.error('❌ Validation failed: Missing required fields');
             return res.status(400).json({ error: 'Email, password, and name are required' });
         }
 
+        console.log('🔍 Checking if user exists...');
         // Check if user exists
         const existingUser = await User.findOne({ email });
         if (existingUser) {
+            console.log('❌ User already exists');
             return res.status(400).json({ error: 'Email already registered' });
         }
 
+        console.log('👤 Creating new user...');
         // Create new user
         const user = new User({
             email,
@@ -470,11 +491,14 @@ app.post('/api/auth/signup', async (req, res) => {
             bio: bio || ''
         });
 
+        console.log('💾 Saving user to database...');
         await user.save();
         console.log('✅ User saved:', user.email);
 
+        console.log('🔑 Creating JWT token...');
         // Create JWT token
         const token = createToken(user._id.toString());
+        console.log('✅ Token created successfully');
 
         res.status(201).json({
             message: 'User registered successfully',
@@ -491,8 +515,16 @@ app.post('/api/auth/signup', async (req, res) => {
             }
         });
     } catch (error) {
-        console.error('Signup error:', error);
-        res.status(500).json({ error: 'Signup failed', message: error.message });
+        console.error('❌ Signup error:', error);
+        console.error('Error name:', error.name);
+        console.error('Error message:', error.message);
+        console.error('Error stack:', error.stack);
+        res.status(500).json({ 
+            error: 'Signup failed', 
+            message: error.message,
+            errorName: error.name,
+            details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+        });
     }
 });
 
