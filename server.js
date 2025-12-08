@@ -26,7 +26,7 @@ async function connectDB() {
     if (isConnected) {
         return;
     }
-    
+
     try {
         mongoose.set('strictQuery', false);
         await mongoose.connect(MONGODB_URI, {
@@ -103,7 +103,7 @@ async function buildDynamicSystemPrompt(userId) {
     try {
         // Get the authenticated user
         const authUser = await User.findById(userId);
-        
+
         if (!authUser) {
             return BASE_SYSTEM_PROMPT;
         }
@@ -800,9 +800,9 @@ app.get('/', (req, res) => {
 // Global error handler
 app.use((err, req, res, next) => {
     console.error('Server error:', err);
-    res.status(500).json({ 
-        error: 'Something went wrong', 
-        message: err.message 
+    res.status(500).json({
+        error: 'Something went wrong',
+        message: err.message
     });
 });
 

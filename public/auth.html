@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -71,7 +72,8 @@
             font-size: 14px;
         }
 
-        input, textarea {
+        input,
+        textarea {
             width: 100%;
             padding: 14px 16px;
             border: 1px solid #ddd;
@@ -83,12 +85,14 @@
             color: #000;
         }
 
-        input:focus, textarea:focus {
+        input:focus,
+        textarea:focus {
             outline: none;
             border-color: #000;
         }
 
-        input:hover, textarea:hover {
+        input:hover,
+        textarea:hover {
             border-color: #999;
         }
 
@@ -215,6 +219,7 @@
         }
     </style>
 </head>
+
 <body>
     <div class="auth-container">
         <!-- Login Form -->
@@ -227,13 +232,15 @@
             <form id="loginFormElement">
                 <div class="form-group">
                     <label for="loginEmail">Email address</label>
-                    <input type="email" id="loginEmail" name="email" required placeholder="you@example.com" autocomplete="email">
+                    <input type="email" id="loginEmail" name="email" required placeholder="you@example.com"
+                        autocomplete="email">
                     <div class="error" id="loginEmailError"></div>
                 </div>
 
                 <div class="form-group">
                     <label for="loginPassword">Password</label>
-                    <input type="password" id="loginPassword" name="password" required placeholder="Enter your password" autocomplete="current-password">
+                    <input type="password" id="loginPassword" name="password" required placeholder="Enter your password"
+                        autocomplete="current-password">
                     <div class="error" id="loginPasswordError"></div>
                 </div>
 
@@ -256,13 +263,15 @@
             <form id="signupFormElement">
                 <div class="form-group">
                     <label for="signupEmail">Email address</label>
-                    <input type="email" id="signupEmail" name="email" required placeholder="you@example.com" autocomplete="email">
+                    <input type="email" id="signupEmail" name="email" required placeholder="you@example.com"
+                        autocomplete="email">
                     <div class="error" id="signupEmailError"></div>
                 </div>
 
                 <div class="form-group">
                     <label for="signupPassword">Password</label>
-                    <input type="password" id="signupPassword" name="password" required placeholder="At least 6 characters" autocomplete="new-password">
+                    <input type="password" id="signupPassword" name="password" required
+                        placeholder="At least 6 characters" autocomplete="new-password">
                     <div class="error" id="signupPasswordError"></div>
                 </div>
 
@@ -274,7 +283,7 @@
 
                 <div class="optional-fields">
                     <span class="optional-label">Optional - Help us personalize your experience</span>
-                    
+
                     <div class="form-group">
                         <label for="signupNickname">Nickname</label>
                         <input type="text" id="signupNickname" name="nickname" placeholder="What should we call you?">
@@ -293,12 +302,14 @@
 
                     <div class="form-group">
                         <label for="signupEducation">Educational background</label>
-                        <input type="text" id="signupEducation" name="educationalBackground" placeholder="e.g., CSE Student at XYZ">
+                        <input type="text" id="signupEducation" name="educationalBackground"
+                            placeholder="e.g., CSE Student at XYZ">
                     </div>
 
                     <div class="form-group">
                         <label for="signupBio">About you</label>
-                        <textarea id="signupBio" name="bio" placeholder="Tell us something interesting about yourself..."></textarea>
+                        <textarea id="signupBio" name="bio"
+                            placeholder="Tell us something interesting about yourself..."></textarea>
                     </div>
                 </div>
 
@@ -451,4 +462,5 @@
         });
     </script>
 </body>
+
 </html>
