@@ -23,8 +23,20 @@ const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/choti-
 let isConnected = false;
 
 async function connectDB() {
-    if (isConnected && mongoose.connection.readyState === 1) {
+    // Check if already connected
+    if (mongoose.connection.readyState === 1) {
         console.log('✅ Using existing MongoDB connection');
+        isConnected = true;
+        return;
+    }
+
+    // If connecting, wait for it
+    if (mongoose.connection.readyState === 2) {
+        console.log('⏳ Waiting for existing connection attempt...');
+        await new Promise((resolve) => {
+            mongoose.connection.once('connected', resolve);
+        });
+        isConnected = true;
         return;
     }
 
@@ -33,13 +45,20 @@ async function connectDB() {
         console.log('📍 MongoDB URI:', MONGODB_URI ? MONGODB_URI.substring(0, 25) + '...' : 'NOT SET');
 
         mongoose.set('strictQuery', false);
+        
+        // Disconnect if in disconnecting state
+        if (mongoose.connection.readyState === 3) {
+            await mongoose.disconnect();
+        }
+        
         await mongoose.connect(MONGODB_URI, {
             bufferCommands: false,
             maxPoolSize: 10,
-            serverSelectionTimeoutMS: 10000, // Increased to 10 seconds
+            serverSelectionTimeoutMS: 10000,
             socketTimeoutMS: 45000,
-            family: 4 // Force IPv4
+            family: 4
         });
+        
         isConnected = true;
         console.log('✅ Connected to MongoDB successfully');
         console.log('📊 Connection state:', mongoose.connection.readyState);
