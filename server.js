@@ -8,6 +8,10 @@ const mongoose = require('mongoose');
 // Import models
 const Conversation = require('./models/Conversation');
 const ChotiProfile = require('./models/ChotiProfile');
+const User = require('./models/User');
+
+// Import auth utilities
+const { createToken, authMiddleware } = require('./utils/auth');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -393,7 +397,146 @@ function getConversationHistory(userId) {
     return conversationHistories[userId];
 }
 
-// Main chat endpoint
+// ============ AUTH ENDPOINTS ============
+
+// POST /api/auth/signup - Register new user
+app.post('/api/auth/signup', async (req, res) => {
+    try {
+        const { email, password, name, nickname, hobby, passion, educationalBackground, bio } = req.body;
+
+        if (!email || !password || !name) {
+            return res.status(400).json({ error: 'Email, password, and name are required' });
+        }
+
+        // Check if user exists
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+            return res.status(400).json({ error: 'Email already registered' });
+        }
+
+        // Create new user
+        const user = new User({
+            email,
+            password,
+            name,
+            nickname: nickname || name,
+            hobby: hobby || '',
+            passion: passion || '',
+            educationalBackground: educationalBackground || '',
+            bio: bio || ''
+        });
+
+        await user.save();
+
+        // Create JWT token
+        const token = createToken(user._id.toString());
+
+        res.status(201).json({
+            message: 'User registered successfully',
+            token,
+            user: {
+                id: user._id,
+                email: user.email,
+                name: user.name,
+                nickname: user.nickname,
+                hobby: user.hobby,
+                passion: user.passion,
+                educationalBackground: user.educationalBackground,
+                bio: user.bio
+            }
+        });
+    } catch (error) {
+        console.error('Signup error:', error);
+        res.status(500).json({ error: 'Signup failed', message: error.message });
+    }
+});
+
+// POST /api/auth/login - Login user
+app.post('/api/auth/login', async (req, res) => {
+    try {
+        const { email, password } = req.body;
+
+        if (!email || !password) {
+            return res.status(400).json({ error: 'Email and password are required' });
+        }
+
+        // Find user
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(401).json({ error: 'Invalid credentials' });
+        }
+
+        // Check password
+        const isPasswordValid = await user.comparePassword(password);
+        if (!isPasswordValid) {
+            return res.status(401).json({ error: 'Invalid credentials' });
+        }
+
+        // Create JWT token
+        const token = createToken(user._id.toString());
+
+        res.json({
+            message: 'Login successful',
+            token,
+            user: {
+                id: user._id,
+                email: user.email,
+                name: user.name,
+                nickname: user.nickname,
+                hobby: user.hobby,
+                passion: user.passion,
+                educationalBackground: user.educationalBackground,
+                bio: user.bio
+            }
+        });
+    } catch (error) {
+        console.error('Login error:', error);
+        res.status(500).json({ error: 'Login failed', message: error.message });
+    }
+});
+
+// GET /api/auth/me - Get current user info (protected)
+app.get('/api/auth/me', authMiddleware, async (req, res) => {
+    try {
+        const user = await User.findById(req.userId).select('-password');
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+        res.json(user);
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to get user', message: error.message });
+    }
+});
+
+// PUT /api/auth/profile - Update user profile (protected)
+app.put('/api/auth/profile', authMiddleware, async (req, res) => {
+    try {
+        const { name, nickname, hobby, passion, educationalBackground, bio } = req.body;
+
+        const user = await User.findByIdAndUpdate(
+            req.userId,
+            {
+                name: name || undefined,
+                nickname: nickname || undefined,
+                hobby: hobby || undefined,
+                passion: passion || undefined,
+                educationalBackground: educationalBackground || undefined,
+                bio: bio || undefined,
+                updatedAt: new Date()
+            },
+            { new: true }
+        ).select('-password');
+
+        res.json({
+            message: 'Profile updated successfully',
+            user
+        });
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to update profile', message: error.message });
+    }
+});
+
+// ============ MAIN CHAT ENDPOINT ============
 app.post('/api/chat', async (req, res) => {
     try {
         const { message, userId, conversationId } = req.body;
