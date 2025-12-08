@@ -12,12 +12,35 @@ const ChotiProfile = require('./models/ChotiProfile');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// MongoDB connection
+// MongoDB connection optimized for serverless
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/choti-companion';
 
-mongoose.connect(MONGODB_URI)
-    .then(() => console.log('✅ Connected to MongoDB'))
-    .catch(err => console.log('⚠️ MongoDB connection error:', err.message));
+// Cache the database connection
+let isConnected = false;
+
+async function connectDB() {
+    if (isConnected) {
+        return;
+    }
+    
+    try {
+        mongoose.set('strictQuery', false);
+        await mongoose.connect(MONGODB_URI, {
+            bufferCommands: false,
+            maxPoolSize: 10,
+            serverSelectionTimeoutMS: 5000,
+            socketTimeoutMS: 45000,
+        });
+        isConnected = true;
+        console.log('✅ Connected to MongoDB');
+    } catch (err) {
+        console.log('⚠️ MongoDB connection error:', err.message);
+        isConnected = false;
+    }
+}
+
+// Connect on startup
+connectDB();
 
 // OpenRouter API configuration
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
@@ -249,6 +272,17 @@ async function analyzeAndUpdateProfile(userId, userMessage, assistantResponse) {
 app.use(cors());
 app.use(bodyParser.json());
 app.use(express.static('public'));
+
+// Middleware to ensure DB connection before API calls
+app.use(async (req, res, next) => {
+    try {
+        await connectDB();
+        next();
+    } catch (error) {
+        console.error('DB connection middleware error:', error);
+        next(); // Continue even if DB fails - some routes don't need DB
+    }
+});
 
 // Demo mode responses for testing without API quota
 const DEMO_RESPONSES = [
@@ -582,6 +616,15 @@ app.get('/api/health', async (req, res) => {
 // Serve index.html for root path
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// Global error handler
+app.use((err, req, res, next) => {
+    console.error('Server error:', err);
+    res.status(500).json({ 
+        error: 'Something went wrong', 
+        message: err.message 
+    });
 });
 
 // Only listen when not in Vercel (local development)
