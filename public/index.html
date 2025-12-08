@@ -625,8 +625,19 @@
     const authToken = localStorage.getItem('authToken');
     const user = JSON.parse(localStorage.getItem('user') || 'null');
 
-    if (!authToken || !user) {
-      // Redirect to login if not authenticated
+    console.log('🔍 Auth Check:', { 
+      hasToken: !!authToken, 
+      hasUser: !!user, 
+      userId: user?.id,
+      userEmail: user?.email 
+    });
+
+    if (!authToken || !user || !user.id) {
+      console.warn('⚠️ Invalid auth data, redirecting to login...');
+      // Clear invalid data
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('user');
+      // Redirect to login if not authenticated or user data is invalid
       window.location.href = '/auth.html';
     }
 
