@@ -823,6 +823,11 @@
         return;
       }
 
+      // Debug: Log user object
+      console.log('🔍 User object:', user);
+      console.log('🔍 User ID:', user?.id);
+      console.log('🔍 Auth token:', authToken ? 'Present' : 'Missing');
+
       // Remove welcome screen
       const welcome = chatContainer.querySelector('.welcome-screen');
       if (welcome) {
