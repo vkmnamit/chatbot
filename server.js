@@ -108,6 +108,9 @@ Conversation style:
 // Function to build dynamic system prompt with user's profile
 async function buildDynamicSystemPrompt(userId) {
     try {
+        // Ensure DB connection in serverless environment
+        await connectDB();
+        
         // Get the authenticated user
         const authUser = await User.findById(userId);
 
@@ -182,6 +185,9 @@ Use this context to provide even more personalized, relevant responses. Referenc
 // Function to analyze and update user's profile based on message
 async function analyzeAndUpdateProfile(userId, userMessage, assistantResponse) {
     try {
+        // Ensure DB connection in serverless environment
+        await connectDB();
+        
         let profile = await ChotiProfile.findOne({ oderId: userId });
         if (!profile) {
             profile = new ChotiProfile({ oderId: userId });

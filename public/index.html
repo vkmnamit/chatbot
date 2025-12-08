@@ -659,19 +659,19 @@
     const userInfoCard = document.getElementById('userInfoCard');
     if (userInfoCard && user) {
       let infoHTML = '';
-      
+
       if (user.educationalBackground) {
         infoHTML += `<p>🎓 ${user.educationalBackground}</p>`;
       }
-      
+
       if (user.hobby) {
         infoHTML += `<p>❤️ Hobby: ${user.hobby}</p>`;
       }
-      
+
       if (user.passion) {
         infoHTML += `<p>✨ Passionate about: ${user.passion}</p>`;
       }
-      
+
       if (infoHTML) {
         userInfoCard.innerHTML = infoHTML;
         userInfoCard.style.display = 'block';
