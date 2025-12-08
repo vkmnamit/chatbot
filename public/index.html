@@ -110,6 +110,11 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
+      gap: 12px;
+      background: #fff;
+      position: sticky;
+      top: 0;
+      z-index: 100;
     }
 
     .header-title {
@@ -382,7 +387,7 @@
 
       .sidebar.open {
         left: 0;
-        box-shadow: 0 0 20px rgba(0,0,0,0.3);
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
       }
 
       .sidebar-overlay {
@@ -392,7 +397,7 @@
         left: 0;
         right: 0;
         bottom: 0;
-        background: rgba(0,0,0,0.5);
+        background: rgba(0, 0, 0, 0.5);
         z-index: 999;
       }
 
@@ -491,21 +496,27 @@
     /* Menu button styles */
     .menu-btn {
       display: none;
-      width: 36px;
-      height: 36px;
+      width: 40px;
+      height: 40px;
       border-radius: 8px;
       border: 1px solid #e5e5e5;
       background: white;
       color: #333;
-      font-size: 20px;
+      font-size: 22px;
       cursor: pointer;
       align-items: center;
       justify-content: center;
       transition: all 0.2s;
+      flex-shrink: 0;
     }
 
     .menu-btn:hover {
       background: #f5f5f5;
+    }
+
+    .menu-btn:active {
+      background: #e5e5e5;
+      transform: scale(0.95);
     }
 
     /* New chat button for mobile header */
@@ -535,12 +546,13 @@
   <div class="wrapper">
     <!-- Mobile overlay -->
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
-    
+
     <div class="sidebar" id="sidebar">
       <div class="sidebar-header">
         <button id="newChatBtn" title="New Chat">➕</button>
         <span>Choti</span>
-        <button class="close-sidebar-btn" id="closeSidebarBtn" style="display:none; background:transparent; border:none; color:white; font-size:24px; cursor:pointer;">✕</button>
+        <button class="close-sidebar-btn" id="closeSidebarBtn"
+          style="display:none; background:transparent; border:none; color:white; font-size:24px; cursor:pointer;">✕</button>
       </div>
 
       <div class="chat-history" id="chatHistory"></div>
@@ -821,7 +833,7 @@
     async function loadConversation(convId) {
       // Close sidebar on mobile when conversation is selected
       closeSidebar();
-      
+
       try {
         const response = await fetch(`/api/conversation/${convId}`);
         const data = await response.json();
