@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Choti - AI Companion</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: #fff;
+      min-height: 100vh;
+    }
+
+    .wrapper {
+      display: flex;
+      height: 100vh;
+    }
+
+    .sidebar {
+      width: 260px;
+      background: #10a37f;
+      color: white;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      border-right: 1px solid #e5e5e5;
+    }
+
+    .sidebar-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .sidebar-header button {
+      width: 40px;
+      height: 40px;
+      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      font-size: 18px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .sidebar-header button:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .sidebar-header span {
+      font-weight: 600;
+      flex: 1;
+    }
+
+    .chat-history {
+      flex: 1;
+      overflow-y: auto;
+      margin-bottom: 20px;
+    }
+
+    .history-item {
+      padding: 10px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      margin-bottom: 8px;
+      background: rgba(255, 255, 255, 0.1);
+      transition: all 0.2s;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .history-item:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .sidebar-footer {
+      padding-top: 20px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      font-size: 13px;
+    }
+
+    .main-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: #fff;
+    }
+
+    .header-bar {
+      padding: 12px 20px;
+      border-bottom: 1px solid #e5e5e5;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .header-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #333;
+    }
+
+    .chat-container {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .welcome-screen {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      color: #565869;
+    }
+
+    .welcome-logo {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+
+    .welcome-title {
+      font-size: 32px;
+      font-weight: 600;
+      color: #0d0d0d;
+      margin-bottom: 8px;
+    }
+
+    .welcome-subtitle {
+      font-size: 16px;
+      color: #565869;
+      margin-bottom: 16px;
+    }
+
+    .choti-info {
+      background: linear-gradient(135deg, #10a37f15, #10a37f25);
+      border: 1px solid #10a37f40;
+      border-radius: 12px;
+      padding: 16px 24px;
+      margin-bottom: 24px;
+    }
+
+    .choti-info p {
+      font-size: 14px;
+      color: #10a37f;
+      margin: 4px 0;
+      font-weight: 500;
+    }
+
+    .welcome-tips {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    .tip {
+      padding: 12px;
+      border: 1px solid #d7d7d7;
+      border-radius: 8px;
+      font-size: 14px;
+      background: #f7f7f7;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .tip:hover {
+      background: #10a37f;
+      color: white;
+      border-color: #10a37f;
+      transform: translateY(-2px);
+    }
+
+    .message-group {
+      display: flex;
+      margin-bottom: 12px;
+    }
+
+    .message-group.user {
+      justify-content: flex-end;
+    }
+
+    .message-bubble {
+      max-width: 70%;
+      padding: 12px 16px;
+      border-radius: 12px;
+      line-height: 1.5;
+      font-size: 15px;
+      word-wrap: break-word;
+      animation: slideIn 0.3s ease;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .message-group.user .message-bubble {
+      background: #10a37f;
+      color: white;
+    }
+
+    .message-group.assistant .message-bubble {
+      background: #e5e5e5;
+      color: #0d0d0d;
+    }
+
+    .typing-indicator {
+      display: flex;
+      gap: 4px;
+      padding: 12px 16px;
+      background: #e5e5e5;
+      border-radius: 12px;
+      width: fit-content;
+    }
+
+    .typing-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #999;
+      animation: typing 1.4s infinite;
+    }
+
+    .typing-dot:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+
+    .typing-dot:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+
+    @keyframes typing {
+
+      0%,
+      60%,
+      100% {
+        transform: translateY(0);
+        opacity: 0.5;
+      }
+
+      30% {
+        transform: translateY(-10px);
+        opacity: 1;
+      }
+    }
+
+    .input-area {
+      padding: 16px 20px 20px;
+      background: #fff;
+      border-top: 1px solid #e5e5e5;
+    }
+
+    .input-wrapper {
+      display: flex;
+      gap: 8px;
+      background: #f7f7f7;
+      border: 1px solid #d7d7d7;
+      border-radius: 12px;
+      padding: 2px;
+      align-items: flex-end;
+    }
+
+    textarea {
+      flex: 1;
+      border: none;
+      background: transparent;
+      padding: 10px 12px;
+      font-size: 15px;
+      font-family: inherit;
+      resize: none;
+      max-height: 100px;
+      outline: none;
+    }
+
+    textarea::placeholder {
+      color: #8e8e93;
+    }
+
+    .send-button {
+      background: none;
+      border: none;
+      color: #10a37f;
+      font-size: 18px;
+      cursor: pointer;
+      padding: 8px 12px;
+      transition: all 0.2s;
+      flex-shrink: 0;
+    }
+
+    .send-button:hover:not(:disabled) {
+      opacity: 0.7;
+    }
+
+    .send-button:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .chat-container::-webkit-scrollbar,
+    .chat-history::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .chat-container::-webkit-scrollbar-track,
+    .chat-history::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .chat-container::-webkit-scrollbar-thumb,
+    .chat-history::-webkit-scrollbar-thumb {
+      background: #ccc;
+      border-radius: 4px;
+    }
+
+    .chat-container::-webkit-scrollbar-thumb:hover,
+    .chat-history::-webkit-scrollbar-thumb:hover {
+      background: #999;
+    }
+
+    @media (max-width: 768px) {
+      .sidebar {
+        width: 200px;
+      }
+
+      .message-bubble {
+        max-width: 85%;
+      }
+
+      .welcome-tips {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .wrapper {
+        flex-direction: column;
+      }
+
+      .sidebar {
+        width: 100%;
+        height: auto;
+        border-right: none;
+        border-bottom: 1px solid #e5e5e5;
+      }
+
+      .chat-history {
+        display: none;
+      }
+
+      .main-container {
+        min-height: calc(100vh - 80px);
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrapper">
+    <div class="sidebar">
+      <div class="sidebar-header">
+        <button id="newChatBtn" title="New Chat">➕</button>
+        <span>Choti</span>
+      </div>
+
+      <div class="chat-history" id="chatHistory"></div>
+
+      <div class="sidebar-footer">
+        <p>AI Companion for Choti 💫</p>
+      </div>
+    </div>
+
+    <div class="main-container">
+      <div class="header-bar">
+        <div class="header-title" id="headerTitle">New Chat</div>
+      </div>
+
+      <div class="chat-container" id="chatContainer">
+        <div class="welcome-screen">
+          <div class="welcome-logo">💫</div>
+          <div class="welcome-title">Hi, I'm here for Choti</div>
+          <div class="welcome-subtitle">Your AI Companion - Always Here to Listen</div>
+          <div class="choti-info">
+            <p>🎓 CSE Student at BMSCE | 9+ CGPA</p>
+            <p>📍 From Bihar | Allen Kota Warrior</p>
+          </div>
+          <div class="welcome-tips">
+            <div class="tip" data-message="I want to share my thoughts with you today...">💭 Share your thoughts</div>
+            <div class="tip" data-message="I'm feeling a bit emotional right now...">❤️ Express your feelings</div>
+            <div class="tip" data-message="I need someone who understands me...">🌙 Get understanding</div>
+            <div class="tip" data-message="I could use some support right now...">✨ Find support</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="input-area">
+        <div class="input-wrapper">
+          <textarea id="messageInput" placeholder="Message Choti..." rows="1"></textarea>
+          <button id="sendBtn" class="send-button" title="Send">➤</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const chatContainer = document.getElementById('chatContainer');
+    const messageInput = document.getElementById('messageInput');
+    const sendBtn = document.getElementById('sendBtn');
+    const newChatBtn = document.getElementById('newChatBtn');
+    const chatHistory = document.getElementById('chatHistory');
+    const headerTitle = document.getElementById('headerTitle');
+
+    // Generate unique user ID
+    let userId = localStorage.getItem('chotiUserId');
+    if (!userId) {
+      userId = 'user_' + Date.now();
+      localStorage.setItem('chotiUserId', userId);
+    }
+
+    let isWaitingForResponse = false;
+    let currentChatId = 'chat_' + Date.now();
+
+    // Auto-resize textarea
+    messageInput.addEventListener('input', () => {
+      messageInput.style.height = 'auto';
+      messageInput.style.height = Math.min(messageInput.scrollHeight, 100) + 'px';
+    });
+
+    function displayWelcome() {
+      chatContainer.innerHTML = `
+          <div class="welcome-screen">
+            <div class="welcome-logo">💫</div>
+            <div class="welcome-title">Hi, I'm here for Choti</div>
+            <div class="welcome-subtitle">Your AI Companion - Always Here to Listen</div>
+            <div class="choti-info">
+              <p>🎓 CSE Student at BMSCE | 9+ CGPA</p>
+              <p>📍 From Bihar | Allen Kota Warrior</p>
+            </div>
+            <div class="welcome-tips">
+              <div class="tip" data-message="I want to share my thoughts with you today...">💭 Share your thoughts</div>
+              <div class="tip" data-message="I'm feeling a bit emotional right now...">❤️ Express your feelings</div>
+              <div class="tip" data-message="I need someone who understands me...">🌙 Get understanding</div>
+              <div class="tip" data-message="I could use some support right now...">✨ Find support</div>
+            </div>
+          </div>
+        `;
+      attachTipListeners();
+    }
+
+    function displayMessage(text, isUser = false) {
+      // Remove welcome screen if it exists
+      const welcome = chatContainer.querySelector('.welcome-screen');
+      if (welcome) {
+        welcome.remove();
+      }
+
+      const messageGroup = document.createElement('div');
+      messageGroup.className = `message-group ${isUser ? 'user' : 'assistant'}`;
+
+      const bubble = document.createElement('div');
+      bubble.className = 'message-bubble';
+      bubble.textContent = text;
+
+      messageGroup.appendChild(bubble);
+      chatContainer.appendChild(messageGroup);
+      scrollToBottom();
+    }
+
+    function displayTypingIndicator() {
+      const messageGroup = document.createElement('div');
+      messageGroup.className = 'message-group assistant';
+      messageGroup.id = 'typingIndicator';
+
+      const indicator = document.createElement('div');
+      indicator.className = 'typing-indicator';
+      indicator.innerHTML =
+        '<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>';
+
+      messageGroup.appendChild(indicator);
+      chatContainer.appendChild(messageGroup);
+      scrollToBottom();
+    }
+
+    function removeTypingIndicator() {
+      const indicator = document.getElementById('typingIndicator');
+      if (indicator) {
+        indicator.remove();
+      }
+    }
+
+    function scrollToBottom() {
+      setTimeout(() => {
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+      }, 0);
+    }
+
+    async function sendMessage() {
+      const message = messageInput.value.trim();
+
+      if (!message || isWaitingForResponse) {
+        return;
+      }
+
+      // Remove welcome screen
+      const welcome = chatContainer.querySelector('.welcome-screen');
+      if (welcome) {
+        welcome.remove();
+      }
+
+      displayMessage(message, true);
+      messageInput.value = '';
+      messageInput.style.height = 'auto';
+
+      isWaitingForResponse = true;
+      displayTypingIndicator();
+
+      try {
+        const response = await fetch('/api/chat', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            message: message,
+            userId: userId,
+          }),
+        });
+
+        const data = await response.json();
+        removeTypingIndicator();
+
+        if (data.success) {
+          displayMessage(data.message, false);
+          addToHistory(message);
+        } else {
+          let errorMsg = data.error || 'Unable to process your message';
+          if (data.retryAfter) {
+            errorMsg += ` (Please wait ${data.retryAfter} seconds before trying again)`;
+          }
+          displayMessage(errorMsg, false);
+        }
+      } catch (error) {
+        removeTypingIndicator();
+        console.error('Error:', error);
+        displayMessage(
+          'Connection error. Please check your connection and try again.',
+          false
+        );
+      } finally {
+        isWaitingForResponse = false;
+        messageInput.focus();
+      }
+    }
+
+    function addToHistory(message) {
+      const preview = message.substring(0, 30) + (message.length > 30 ? '...' : '');
+
+      if (!document.querySelector(`.history-item[data-id="${currentChatId}"]`)) {
+        const item = document.createElement('div');
+        item.className = 'history-item';
+        item.textContent = preview;
+        item.dataset.id = currentChatId;
+        item.addEventListener('click', () => {
+          loadChat(currentChatId);
+        });
+        chatHistory.insertBefore(item, chatHistory.firstChild);
+      }
+    }
+
+    function loadChat(chatId) {
+      currentChatId = chatId;
+      headerTitle.textContent = 'Chat - ' + chatId.substring(5, 13);
+      chatContainer.innerHTML = '';
+      displayWelcome();
+    }
+
+    sendBtn.addEventListener('click', sendMessage);
+
+    messageInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+
+    newChatBtn.addEventListener('click', () => {
+      currentChatId = 'chat_' + Date.now();
+      headerTitle.textContent = 'New Chat';
+      chatContainer.innerHTML = '';
+      displayWelcome();
+      messageInput.value = '';
+      messageInput.focus();
+    });
+
+    // Handle tip clicks
+    function attachTipListeners() {
+      const tips = document.querySelectorAll('.tip[data-message]');
+      tips.forEach(tip => {
+        tip.addEventListener('click', () => {
+          const message = tip.getAttribute('data-message');
+          if (message) {
+            messageInput.value = message;
+            sendMessage();
+          }
+        });
+      });
+    }
+
+    // Initial attachment of tip listeners
+    attachTipListeners();
+
+    messageInput.focus();
+  </script>
+</body>
+
+</html>
