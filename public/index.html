@@ -768,15 +768,29 @@
     });
 
     function displayWelcome() {
+      const userName = user?.nickname || user?.name || 'there';
+      const userInfo = [];
+      
+      if (user?.educationalBackground) {
+        userInfo.push(`🎓 ${user.educationalBackground}`);
+      }
+      if (user?.hobby) {
+        userInfo.push(`❤️ Hobby: ${user.hobby}`);
+      }
+      if (user?.passion) {
+        userInfo.push(`✨ Passion: ${user.passion}`);
+      }
+
+      const userInfoHTML = userInfo.length > 0 
+        ? `<div class="choti-info">${userInfo.map(info => `<p>${info}</p>`).join('')}</div>`
+        : '';
+
       chatContainer.innerHTML = `
           <div class="welcome-screen">
             <div class="welcome-logo">💫</div>
-            <div class="welcome-title">Hi, I'm here for Choti</div>
+            <div class="welcome-title">Welcome back, ${userName}!</div>
             <div class="welcome-subtitle">Your AI Companion - Always Here to Listen</div>
-            <div class="choti-info">
-              <p>🎓 CSE Student at BMSCE | 9+ CGPA</p>
-              <p>📍 From Bihar | Allen Kota Warrior</p>
-            </div>
+            ${userInfoHTML}
             <div class="welcome-tips">
               <div class="tip" data-message="I want to share my thoughts with you today...">💭 Share your thoughts</div>
               <div class="tip" data-message="I'm feeling a bit emotional right now...">❤️ Express your feelings</div>
