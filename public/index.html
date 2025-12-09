@@ -25,12 +25,12 @@
 
     .sidebar {
       width: 260px;
-      background: #0a0a0a;
-      color: #f5f5dc;
+      background: #ffffff;
+      color: #0a0a0a;
       padding: 16px;
       display: flex;
       flex-direction: column;
-      border-right: 1px solid rgba(245, 245, 220, 0.1);
+      border-right: 1px solid rgba(0, 0, 0, 0.1);
     }
 
     .sidebar-header {
@@ -39,30 +39,30 @@
       gap: 10px;
       margin-bottom: 20px;
       padding-bottom: 20px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      border-bottom: 1px solid rgba(0, 0, 0, 0.1);
     }
 
     .sidebar-header button {
       width: 40px;
       height: 40px;
       border-radius: 6px;
-      border: 1px solid rgba(245, 245, 220, 0.2);
-      background: rgba(245, 245, 220, 0.1);
-      color: #f5f5dc;
+      border: 1px solid rgba(0, 0, 0, 0.2);
+      background: rgba(0, 0, 0, 0.05);
+      color: #0a0a0a;
       font-size: 18px;
       cursor: pointer;
       transition: all 0.2s;
     }
 
     .sidebar-header button:hover {
-      background: rgba(245, 245, 220, 0.2);
-      border-color: #f5f5dc;
+      background: rgba(0, 0, 0, 0.1);
+      border-color: #0a0a0a;
     }
 
     .sidebar-header span {
       font-weight: 600;
       flex: 1;
-      color: #f5f5dc;
+      color: #0a0a0a;
     }
 
     .chat-history {
@@ -101,9 +101,9 @@
 
     .sidebar-footer {
       padding-top: 20px;
-      border-top: 1px solid rgba(245, 245, 220, 0.1);
+      border-top: 1px solid rgba(0, 0, 0, 0.1);
       font-size: 13px;
-      color: rgba(245, 245, 220, 0.6);
+      color: rgba(0, 0, 0, 0.6);
     }
 
     .main-container {
@@ -586,7 +586,7 @@
       <div class="sidebar-footer">
         <p id="userProfileInfo">Loading...</p>
         <button id="logoutBtn"
-          style="width: 100%; padding: 10px; margin-top: 10px; background: rgba(245,245,220,0.1); border: 1px solid rgba(245,245,220,0.2); color: #f5f5dc; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.2s;">Logout</button>
+          style="width: 100%; padding: 10px; margin-top: 10px; background: rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.2); color: #0a0a0a; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.2s;">Logout</button>
       </div>
     </div>
 
@@ -599,7 +599,7 @@
 
       <div class="chat-container" id="chatContainer">
         <div class="welcome-screen">
-          <div class="welcome-logo">💫</div>
+
           <div class="welcome-title" id="welcomeTitle">Welcome Back!</div>
           <div class="welcome-subtitle">Your personal AI companion is ready to chat</div>
           <div class="choti-info" id="userInfoCard" style="display: none;">
@@ -711,12 +711,12 @@
     const logoutBtn = document.getElementById('logoutBtn');
     if (logoutBtn) {
       logoutBtn.addEventListener('mouseenter', () => {
-        logoutBtn.style.background = 'rgba(245,245,220,0.2)';
-        logoutBtn.style.borderColor = '#f5f5dc';
+        logoutBtn.style.background = 'rgba(0,0,0,0.1)';
+        logoutBtn.style.borderColor = '#0a0a0a';
       });
       logoutBtn.addEventListener('mouseleave', () => {
-        logoutBtn.style.background = 'rgba(245,245,220,0.1)';
-        logoutBtn.style.borderColor = 'rgba(245,245,220,0.2)';
+        logoutBtn.style.background = 'rgba(0,0,0,0.05)';
+        logoutBtn.style.borderColor = 'rgba(0,0,0,0.2)';
       });
     }
 
