@@ -629,11 +629,11 @@
     const authToken = localStorage.getItem('authToken');
     const user = JSON.parse(localStorage.getItem('user') || 'null');
 
-    console.log('🔍 Auth Check:', { 
-      hasToken: !!authToken, 
-      hasUser: !!user, 
+    console.log('🔍 Auth Check:', {
+      hasToken: !!authToken,
+      hasUser: !!user,
       userId: user?.id,
-      userEmail: user?.email 
+      userEmail: user?.email
     });
 
     if (!authToken || !user || !user.id) {

@@ -45,12 +45,12 @@ async function connectDB() {
         console.log('📍 MongoDB URI:', MONGODB_URI ? MONGODB_URI.substring(0, 25) + '...' : 'NOT SET');
 
         mongoose.set('strictQuery', false);
-        
+
         // Disconnect if in disconnecting state
         if (mongoose.connection.readyState === 3) {
             await mongoose.disconnect();
         }
-        
+
         await mongoose.connect(MONGODB_URI, {
             bufferCommands: false,
             maxPoolSize: 10,
@@ -58,7 +58,7 @@ async function connectDB() {
             socketTimeoutMS: 45000,
             family: 4
         });
-        
+
         isConnected = true;
         console.log('✅ Connected to MongoDB successfully');
         console.log('📊 Connection state:', mongoose.connection.readyState);
@@ -491,9 +491,9 @@ app.post('/api/auth/signup', async (req, res) => {
             console.log('🔗 DB connection state after connectDB:', mongoose.connection.readyState);
         } catch (dbError) {
             console.error('❌ Database connection failed:', dbError.message);
-            return res.status(503).json({ 
-                error: 'Database connection failed', 
-                message: 'Unable to connect to database. Please try again.' 
+            return res.status(503).json({
+                error: 'Database connection failed',
+                message: 'Unable to connect to database. Please try again.'
             });
         }
 
