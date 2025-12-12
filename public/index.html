@@ -770,7 +770,7 @@
     function displayWelcome() {
       const userName = user?.nickname || user?.name || 'there';
       const userInfo = [];
-      
+
       if (user?.educationalBackground) {
         userInfo.push(`🎓 ${user.educationalBackground}`);
       }
@@ -781,7 +781,7 @@
         userInfo.push(`✨ Passion: ${user.passion}`);
       }
 
-      const userInfoHTML = userInfo.length > 0 
+      const userInfoHTML = userInfo.length > 0
         ? `<div class="choti-info">${userInfo.map(info => `<p>${info}</p>`).join('')}</div>`
         : '';
 
