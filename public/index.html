@@ -814,11 +814,34 @@
 
       const bubble = document.createElement('div');
       bubble.className = 'message-bubble';
-      bubble.textContent = text;
+
+      if (isUser) {
+        bubble.textContent = text;
+      } else {
+        // Render assistant message with line breaks and basic markdown
+        bubble.innerHTML = renderAssistantMessage(text);
+      }
 
       messageGroup.appendChild(bubble);
       chatContainer.appendChild(messageGroup);
       scrollToBottom();
+    // Render assistant message with line breaks and basic markdown
+    function renderAssistantMessage(text) {
+      if (!text) return '';
+      // Escape HTML
+      let safe = text.replace(/[&<>]/g, function (c) {
+        return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];
+      });
+      // Bold (**text**)
+      safe = safe.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+      // Bullet points (- or * at line start)
+      safe = safe.replace(/(^|\n)[\-\*] (.*?)(?=\n|$)/g, '$1• $2');
+      // Numbered lists (1. 2. ...)
+      safe = safe.replace(/(^|\n)(\d+)\. (.*?)(?=\n|$)/g, '$1$2. $3');
+      // Replace newlines with <br>
+      safe = safe.replace(/\n/g, '<br>');
+      return safe;
+    }
     }
 
     function displayTypingIndicator() {
